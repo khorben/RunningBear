@@ -1,0 +1,172 @@
+#$Id: Linux-arm,v 1.8 2008/10/01 16:30:37 khorben Exp $
+
+
+
+#variables
+[ -z "$CHMOD" ]	&& CHMOD="chmod"
+[ -z "$LD" ]	&& LD="cc -shared -nostdlib"
+[ -z "$MKFS" ]	&& MKFS="mkfs.jffs2 -n -e 0x4000 -l -q -X zlib"
+[ -z "$SUBDIRS" ]&& SUBDIRS="System/Sources/libc \
+		System/Sources/openssl \
+		System/Sources/libSystem \
+		System/Sources/Init \
+		Apps/Unix/Sources/sh \
+		Apps/Unix/Sources/utils \
+		Apps/Unix/Sources/others \
+		Apps/Unix/Sources/devel"
+
+
+#includes
+. "`dirname $0`/Apps/Devel/Sources/scripts/targets/Linux"
+
+
+#functions
+#private
+_create_directories()
+{
+	echo
+	echo -n "Creating missing directories:"
+	while true; do
+		echo -n " $1"
+		$MKDIR "$DESTDIR/$1"				|| exit 2
+		shift || break
+	done
+	echo
+}
+
+
+_image_ramdisk()
+{
+	USAGE="Options for $IMAGE_TYPE on $TARGET:\n\
+  IMAGE_FILE	Where to write the filesystem image\n\
+  MKFS		Command used to format the filesystem"
+
+	#sanity check
+	check "$USAGE" DU GZIP IMAGE_FILE MKFS
+
+	target "install"					|| exit 2
+
+	_create_directories "dev" "proc" "mnt/cdrom" "sbin"
+
+	echo
+	echo -n "Building ramdisk image:"
+	$MKFS "$IMAGE_FILE"					|| exit 2
+	echo
+	$DU "$IMAGE_FILE"
+
+	echo
+	echo -n "Compressing ramdisk:"
+	$GZIP "$IMAGE_FILE"					|| exit 2
+	$MV "$IMAGE_FILE.gz" "$IMAGE_FILE"			|| exit 2
+	echo
+	$DU "$IMAGE_FILE"
+}
+
+
+_image_rootfs()
+{
+	USAGE="Options for $IMAGE_TYPE on $TARGET:\n\
+  IMAGE_FILE	Where to write the filesystem image\n\
+  IMAGE_MODULES	Path to a tar.gz archive of kernel modules (optional)\n\
+  MKFS		Command used to format the filesystem"
+
+	#sanity check
+	check "$USAGE" CHMOD DESTDIR DU GZIP IMAGE_FILE MKFS MV RM STRIP SUDO \
+		TAR
+
+	#compile and install software
+	#FIXME openssl needs -lgcc_eh on ARM
+	target "install"					|| exit 2
+
+	_create_directories "bin" "dev" "etc" "lib" "sbin"
+
+	echo
+	echo -n "Fixing installation paths:"
+	echo -n " libc"
+	$MV $DESTDIR$PREFIX/lib/libc.so* "$DESTDIR/lib"		|| exit 2
+	echo -n " sh"
+	$MV "$DESTDIR$PREFIX/bin/sh" "$DESTDIR/bin"		|| exit 2
+	echo -n " init"
+	$MV "$DESTDIR$PREFIX/bin/Init" "$DESTDIR/sbin/init"	|| exit 2
+	echo
+
+	echo
+	echo -n "Creating device nodes:"
+	for i in std pty console input fb; do
+		echo -n " $i"
+		(cd "$DESTDIR/dev" && $SUDO sh /sbin/MAKEDEV "$i")
+	done
+	echo
+
+	echo
+	echo -n "Cleaning up:"
+	echo -n " includes"
+	$RM -r "$DESTDIR$PREFIX/usr/include"			|| exit 2
+	echo -n " libraries"
+	for i in /lib /usr/lib; do
+		$RM "$DESTDIR$PREFIX$i"/*.a			|| exit 2
+		$RM "$DESTDIR$PREFIX$i"/*.la			|| exit 2
+	done
+	echo -n " stripping"
+	for i in /lib /usr/lib /bin /sbin /usr/bin /usr/sbin; do
+		for j in $DESTDIR$PREFIX$i/*; do
+			[ ! -f "$j" -o ! -x "$j" ] && continue
+			#FIXME actually enforce owner/group and permissions
+			$CHMOD u+w "$j"
+			$STRIP "$j"
+			$CHMOD -w "$j"
+		done
+	done
+	echo
+
+	if [ ! -z "$IMAGE_MODULES" ]; then
+		echo
+		echo "Installing kernel modules:"
+		$GZIP -dc "$IMAGE_MODULES" \
+				| (cd "$DESTDIR" && $TAR -xf -)	|| exit 2
+	fi
+
+	if [ ! -x "$DESTDIR/sbin/init" ]; then
+		echo
+		echo -n "Installing init:"
+		cat > "$DESTDIR/sbin/init" << EOF
+#!/bin/sh
+
+echo "init called with arguments: \$@"
+echo "Falling back to interactive mode:"
+/bin/sh
+EOF
+		chmod 755 "$DESTDIR/sbin/init"
+		echo
+	fi
+
+	echo
+	echo "Building rootfs image:"
+	#FIXME this syntax is specific to mkfs.jffs2
+	$MKFS -r "$DESTDIR" -o "$IMAGE_FILE"			|| exit 2
+	$DU "$IMAGE_FILE"
+
+	echo
+	echo "Building tarball:"
+	OLDPWD="$PWD"
+	(cd "$DESTDIR" && $TAR -cvzf "$OLDPWD/$IMAGE_FILE.tar.gz" .) \
+	| while read filename; do
+		echo -en "\r$filename"
+	done || (echo && exit 2)
+	echo -en "\r"
+	$DU "$IMAGE_FILE.tar.gz"
+}
+
+
+#public
+target_image()
+{
+	case "$IMAGE_TYPE" in
+		"ramdisk")
+			_image_ramdisk
+			;;
+		"rootfs"|*)
+			_image_rootfs
+			;;
+	esac
+}

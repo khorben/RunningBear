@@ -1,0 +1,10 @@
+--- xynth-0.8.90.orig/src/lib/libpng/Makefile	2007-09-25 10:38:40.000000000 +0200
++++ xynth-0.8.90/src/lib/libpng/Makefile	2009-02-20 02:14:03.000000000 +0100
+@@ -5,6 +5,7 @@
+ DIR = src/lib/libpng/
+ 
+ INCDIR = ./ ../libz
++CFLAGS += -D PNG_NO_MMX_CODE
+ OBJS += png.o pngerror.o pngget.o pngmem.o \
+         pngpread.o pngread.o pngrio.o pngrtran.o \
+         pngrutil.o pngset.o pngtrans.o pngwio.o \

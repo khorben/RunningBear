@@ -1,0 +1,11 @@
+--- openssl-0.9.8l.orig/apps/ca.c	2009-11-05 17:04:47.000000000 +0100
++++ openssl-0.9.8l/apps/ca.c	2009-11-19 10:45:36.000000000 +0100
+@@ -84,7 +84,7 @@
+ #      include <unixlib.h>
+ #    endif
+ #  elif !defined(OPENSSL_SYS_VXWORKS) && !defined(OPENSSL_SYS_WINDOWS) && !defined(OPENSSL_SYS_NETWARE) && !defined(__TANDEM)
+-#    include <sys/file.h>
++/* #    include <sys/file.h> */
+ #  endif
+ #endif
+ 

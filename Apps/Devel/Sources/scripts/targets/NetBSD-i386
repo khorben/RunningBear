@@ -1,0 +1,23 @@
+#$Id: NetBSD-i386,v 1.5 2009/04/01 23:54:12 khorben Exp $
+#Copyright (c) 2009 Pierre Pronchery <khorben@defora.org>
+
+
+
+#includes
+. "`dirname $0`/Apps/Devel/Sources/scripts/targets/NetBSD"
+
+
+#functions
+#public
+#target_image
+target_image()
+{
+	case "$IMAGE_TYPE" in
+		"iso")
+			_image_iso
+			;;
+		*)
+			_image_image
+			;;
+	esac
+}

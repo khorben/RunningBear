@@ -1,0 +1,15 @@
+diff -Naur libc-0.1.2.orig/include/unistd.h libc-0.1.2/include/unistd.h
+--- libc-0.1.2.orig/include/unistd.h	2015-04-19 17:08:24.000000000 +0200
++++ libc-0.1.2/include/unistd.h	2015-05-23 16:31:07.000000000 +0200
+@@ -76,6 +76,11 @@
+ # endif
+ 
+ 
++/* constants */
++# define _POSIX_VERSION		200112L
++# define _POSIX2_VERSION	200112L
++
++
+ /* variables */
+ extern char * optarg;
+ extern int optind, opterr, optopt;

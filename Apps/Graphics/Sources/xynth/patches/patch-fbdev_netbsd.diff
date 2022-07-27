@@ -1,0 +1,56 @@
+--- xynth-0.8.90.orig/src/server/video/helper/console.c	2007-09-25 10:38:42.000000000 +0200
++++ xynth-0.8.90/src/server/video/helper/console.c	2009-05-03 00:36:47.000000000 +0200
+@@ -69,7 +67,7 @@
+ 	if (s_video_helper_console.fd < 0) {
+ 		return;
+ 	}
+-	while (ioctl(s_video_helper_console.fd, VT_WAITACTIVE, vc) < 0) {
++	while (vc && ioctl(s_video_helper_console.fd, VT_WAITACTIVE, vc) < 0) {
+ 		if ((errno != EAGAIN) && (errno != EINTR)) {
+ 			perror("ioctl(VT_WAITACTIVE)");
+ 			exit(1);
+@@ -126,9 +124,13 @@
+ 		debugf(DSER | DSYS | DFAT, "Can't open /dev/console");
+ 	}
+ 	if (ioctl(s_video_helper_console.fd, VT_OPENQRY, &s_video_helper_console.vc) < 0) {
++#ifdef __NetBSD__
++		s_video_helper_console.vc = 0;
++#else
+ 		goto error;
++#endif
+ 	}
+-	if (s_video_helper_console.vc <= 0) {
++	if (s_video_helper_console.vc < 0) {
+ 		goto error;
+ 	}
+ 	sprintf(fname, "/dev/tty%d", s_video_helper_console.vc);
+@@ -198,7 +200,9 @@
+ 		s_video_helper_console_waitvtactive(s_video_helper_console.svc);
+ 	}
+ 
++#ifdef VT_UNLOCKSWITCH
+ 	ioctl(s_video_helper_console.fd, VT_UNLOCKSWITCH);
++#endif
+ 	close(s_video_helper_console.fd);
+ 	s_video_helper_console.fd = -1;
+ }
+@@ -297,7 +301,9 @@
+ 	SETSIG(siga, SIGUSR2, s_video_helper_console_acquirevt_signal);
+ 
+ 	ioctl(s_video_helper_console.fd, VT_SETMODE, &m);
++#ifdef VT_LOCKSWITCH
+ 	ioctl(s_video_helper_console.fd, VT_LOCKSWITCH);
++#endif
+ 	ioctl(s_video_helper_console.fd, KDSETMODE, KD_GRAPHICS);
+ 
+ 	for (i = 0; i < sizeof(s_video_helper_console_sig2catch); i++) {
+@@ -307,7 +313,9 @@
+ 		sigaction((int) s_video_helper_console_sig2catch[i], &siga, s_video_helper_console.old_signal_handler + i);
+ 	}
+ 
++#ifdef VT_UNLOCKSWITCH
+ 	ioctl(s_video_helper_console.fd, VT_UNLOCKSWITCH);
++#endif
+ 
+ 	return s_video_helper_console.fd;
+ }

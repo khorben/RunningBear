@@ -1,0 +1,11 @@
+--- gettext-0.14.6/gettext-runtime/intl/Makefile.in.orig	2008-09-19 15:32:09.000000000 +0200
++++ gettext-0.14.6/gettext-runtime/intl/Makefile.in	2008-09-19 15:32:16.000000000 +0200
+@@ -154,7 +154,7 @@
+ libintl.la libgnuintl.la: $(OBJECTS)
+ 	$(LIBTOOL) --mode=link \
+ 	  $(CC) $(CPPFLAGS) $(CFLAGS) $(XCFLAGS) $(LDFLAGS) -o $@ \
+-	  $(OBJECTS) @LTLIBICONV@ @INTL_MACOSX_LIBS@ $(LIBS) -lc \
++	  $(OBJECTS) @LTLIBICONV@ @INTL_MACOSX_LIBS@ $(LIBS) \
+ 	  -version-info $(LTV_CURRENT):$(LTV_REVISION):$(LTV_AGE) \
+ 	  -rpath $(libdir) \
+ 	  -no-undefined

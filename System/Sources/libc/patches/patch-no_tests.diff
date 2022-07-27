@@ -1,0 +1,21 @@
+diff -Naur libc-0.1.2.orig/Makefile libc-0.1.2/Makefile
+--- libc-0.1.2.orig/Makefile	2015-05-11 01:06:45.000000000 +0200
++++ libc-0.1.2/Makefile	2015-05-23 16:09:39.000000000 +0200
+@@ -1,6 +1,6 @@
+ PACKAGE	= libc
+ VERSION	= 0.1.2
+-SUBDIRS	= doc include src src/dl src/math src/pthread src/rt src/socket tests tools
++SUBDIRS	= doc include src src/dl src/math src/pthread src/rt src/socket tools
+ RM	= rm -f
+ LN	= ln -f
+ TAR	= tar
+diff -Naur libc-0.1.2.orig/project.conf libc-0.1.2/project.conf
+--- libc-0.1.2.orig/project.conf	2015-05-11 00:52:38.000000000 +0200
++++ libc-0.1.2/project.conf	2015-05-23 16:09:57.000000000 +0200
+@@ -2,5 +2,5 @@
+ version=0.1.2
+ config=sh
+ 
+-subdirs=doc,include,src,src/dl,src/math,src/pthread,src/rt,src/socket,tests,tools
++subdirs=doc,include,src,src/dl,src/math,src/pthread,src/rt,src/socket,tools
+ dist=Makefile,COPYING,README.md,config.sh

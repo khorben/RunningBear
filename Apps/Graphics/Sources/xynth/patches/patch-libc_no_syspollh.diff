@@ -1,0 +1,11 @@
+--- xynth-0.8.90.orig/Makefile.cfg	2008-11-02 02:54:00.000000000 +0100
++++ xynth-0.8.90/Makefile.cfg	2008-11-02 02:54:11.000000000 +0100
+@@ -68,7 +68,7 @@
+ PIPE_MEM        = N
+ 
+ # Poll Support
+-HAVE_POLL       = Y
++HAVE_POLL       = N
+ 
+ # Image Support
+ IMAGE_PNG       = Y

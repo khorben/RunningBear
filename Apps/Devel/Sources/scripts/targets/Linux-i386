@@ -1,0 +1,135 @@
+#$Id: Linux-i386,v 1.7 2008/10/01 16:27:56 khorben Exp $
+
+
+
+#variables
+#XXX insert i386-specific variables here (grub...)
+
+
+#includes
+. "`dirname $0`/Apps/Devel/Sources/scripts/targets/Linux"
+
+
+#functions
+#private
+_image_image()
+{
+	USAGE="Options for $IMAGE_TYPE on $TARGET:\n\
+  IMAGE_FILE	Where to write the filesystem image\n\
+  IMAGE_KERNEL	Path to the kernel (optional)\n\
+  IMAGE_SIZE	Size of the filesystem image in kilobytes\n\
+  MKFS		Command used to create the filesystem"
+
+	#sanity check
+	check "$USAGE" DD DESTDIR DEVZERO IMAGE_FILE IMAGE_SIZE MKDIR MKFS \
+	MOUNT UMOUNT
+
+	$MKDIR "$DESTDIR"					|| exit 2
+	$UMOUNT "$DESTDIR"
+	$DD if="$DEVZERO" of="$IMAGE_FILE" count="$IMAGE_SIZE" &&
+	$MKFS "$IMAGE_FILE"					|| exit 2
+	$MOUNT "$IMAGE_FILE" "$DESTDIR"				|| exit 2
+	target "install"
+	RET=$?
+	if [ $RET -eq 0 -a -n "$IMAGE_KERNEL" ]; then
+		$INSTALL -m 755 "$IMAGE_KERNEL" "$DESTDIR/$KERNEL"
+		RET=$?
+	fi
+	$UMOUNT "$DESTDIR"
+	exit $RET
+}
+
+
+_image_iso()
+{
+	USAGE="Options for $IMAGE_TYPE on $TARGET:\n\
+  IMAGE_FILE	Where to write the filesystem image\n\
+  IMAGE_KERNEL	Path to the kernel\n\
+  IMAGE_MODULES	Path to a tar.gz archive of kernel modules (optional)\n\
+  IMAGE_RAMDISK	Path to the ramdisk (optional)\n\
+  IMAGE_SIZE	Size of the filesystem image in kilobytes\n\
+  KERNEL_ARGS	Additional arguments to give to the kernel (optional)\n\
+  MKISOFS	Command used to create the ISO image"
+
+	#sanity check
+	check "$USAGE" DESTDIR KERNEL IMAGE_FILE IMAGE_KERNEL IMAGE_SIZE \
+		INSTALL MKDIR MKISOFS MOUNT RAMDISK TAR UMOUNT
+
+	$MKDIR "$DESTDIR/boot/grub"				|| exit 2
+	$INSTALL -m 644 "/usr/lib/grub/i386-pc/stage2_eltorito" \
+	"$DESTDIR/boot/grub"					|| exit 2
+	$INSTALL -m 755 "$IMAGE_KERNEL" "$DESTDIR/$KERNEL"	|| exit 2
+	if [ ! -z "$IMAGE_RAMDISK" ]; then
+		$INSTALL -m 644 "$IMAGE_RAMDISK" "$DESTDIR/$RAMDISK"
+		GRUB_INITRD="initrd $RAMDISK"
+	fi
+	$CAT > "$DESTDIR/boot/grub/menu.lst" << EOF
+default 0
+timeout 10
+
+title $VENDOR
+kernel $KERNEL $KERNEL_ARGS
+$GRUB_INITRD
+EOF
+	[ ! -z "$IMAGE_MODULES" ] && cat "$IMAGE_MODULES" | \
+			(cd "$DESTDIR" && $TAR -xzf -)
+	$MKISOFS -b "boot/grub/stage2_eltorito" -no-emul-boot \
+			-boot-load-size 4 -boot-info-table \
+			-o "$IMAGE_FILE" "$DESTDIR"
+}
+
+
+_image_ramdisk()
+{
+	USAGE="Options for $IMAGE_TYPE on $TARGET:\n\
+  IMAGE_FILE	Where to write the filesystem image\n\
+  IMAGE_SIZE	Size of the filesystem image in kilobytes\n\
+  MKFS		Command used to format the ramdisk image\n\
+  MOUNTPOINT	Path where to temporarily mount the ramdisk image"
+
+	#sanity check
+	check "$USAGE" DD DEVZERO DU GZIP IMAGE_FILE IMAGE_SIZE INSTALL LN \
+	MKDIR MKFS MOUNTPOINT MV UMOUNT
+
+	$MKDIR "$MOUNTPOINT"
+	$UMOUNT "$MOUNTPOINT"
+	$DD if="$DEVZERO" of="$IMAGE_FILE" count="$IMAGE_SIZE"	|| exit 2
+	$MKFS "$IMAGE_FILE"					|| exit 2
+	[ ! -z "$TUNE2FS" ] && $TUNE2FS -i 0 "$IMAGE_FILE"
+	#FIXME umount on subsequent failures
+	$MOUNT "$IMAGE_FILE" "$MOUNTPOINT"			|| exit 2
+
+	#compile and install linuxrc
+	SUBDIRS="Apps/Unix/src/others/tools" target linuxrc	|| exit 2
+
+	DESTDIR="$MOUNTPOINT" _create_directories "dev" "proc" "mnt/cdrom" \
+		"sbin"
+	$LN "../mnt/cdrom/usr/bin/sh" "$MOUNTPOINT/sbin/init"
+	$INSTALL -m 755 "Apps/Unix/src/others/tools/linuxrc" \
+	"$MOUNTPOINT/linuxrc"					|| exit 2
+	$UMOUNT "$MOUNTPOINT"
+
+	echo
+	echo -n "Compressing ramdisk:"
+	$GZIP "$IMAGE_FILE"					|| exit 2
+	$MV "$IMAGE_FILE.gz" "$IMAGE_FILE"			|| exit 2
+	echo
+	$DU "$IMAGE_FILE"
+}
+
+
+#public
+target_image()
+{
+	case "$IMAGE_TYPE" in
+		"iso")
+			_image_iso
+			;;
+		"ramdisk")
+			_image_ramdisk
+			;;
+		*)
+			_image_image
+			;;
+	esac
+}

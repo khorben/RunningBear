@@ -1,0 +1,22 @@
+--- xynth-0.8.90.orig/src/widget/widgetc/Makefile	2007-09-25 10:38:07.000000000 +0200
++++ xynth-0.8.90/src/widget/widgetc/Makefile	2011-02-26 21:44:49.000000000 +0100
+@@ -4,10 +4,10 @@
+ 
+ DIR = src/widget/widgetc/
+ 
+-LDFLAGS = -lexpat
+-INCDIR = ./ ../ ../../lib
++INCDIR = ./ ../ ../../lib ../../lib/expat
+ 
+ OBJS = widgetc.o list.o code.o header.o xml.o
++EXTRA_OBJS = ../../lib/expat/libexpat.o
+ 
+ TARGET_HOST = widgetc
+ 
+@@ -17,5 +17,5 @@
+ 
+ dist: all
+ ifneq ($(TARGET),)
+-	cp -a $(TARGET) ../../../$(DISTBINDIR)
++	cp -R $(TARGET) ../../../$(DISTBINDIR)
+ endif

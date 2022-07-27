@@ -1,0 +1,747 @@
+diff -Naur libc-0.1.2.orig/src/Makefile libc-0.1.2/src/Makefile
+--- libc-0.1.2.orig/src/Makefile	2015-05-11 01:06:45.000000000 +0200
++++ libc-0.1.2/src/Makefile	2015-05-23 16:07:26.000000000 +0200
+@@ -1,5 +1,5 @@
+ SUBDIRS	= kernel/darwin kernel/freebsd kernel/linux kernel/netbsd kernel/openbsd kernel/solaris kernel/whitix
+-TARGETS	= $(OBJDIR)libc.a $(OBJDIR)libc.so.0.0 $(OBJDIR)libc.so.0 $(OBJDIR)libc.so $(OBJDIR)start.o
++TARGETS	= $(OBJDIR)libc.la $(OBJDIR)start.o
+ OBJDIR	=
+ PREFIX	= /usr/local
+ DESTDIR	=
+@@ -15,8 +15,20 @@
+ AR	= ar
+ RANLIB	= ranlib
+ CCSHARED= $(CC) -shared
++LIBTOOL	= libtool
++OBJDIR	=
++PREFIX	= /usr/local
++DESTDIR	=
+ BINDIR	= $(PREFIX)/bin
+ SBINDIR	= $(PREFIX)/sbin
++AS	= $(CC)
++ASFLAGS	= -W -fPIC -Wall -g -pedantic -ffreestanding -c
++CC	= cc
++CPPFLAGSF= -nostdinc -isystem ../include -DPIC
++CPPFLAGS=
++CFLAGSF	= -W -fPIC
++CFLAGS	= -Wall -g -O2 -pedantic -ffreestanding
++LDFLAGSF= -nostdlib
+ RM	= rm -f
+ LN	= ln -f
+ MKDIR	= mkdir -m 0755 -p
+@@ -32,175 +44,169 @@
+ 		$(MAKE) OBJDIR="$(OBJDIR)$$i/"; \
+ 		else $(MAKE); fi) || exit; done
+ 
+-libc_OBJS = $(OBJDIR)ctype.o $(OBJDIR)dirent.o $(OBJDIR)errno.o $(OBJDIR)fcntl.o $(OBJDIR)float.o $(OBJDIR)fnmatch.o $(OBJDIR)grp.o $(OBJDIR)iconv.o $(OBJDIR)langinfo.o $(OBJDIR)libgen.o $(OBJDIR)locale.o $(OBJDIR)net/if.o $(OBJDIR)poll.o $(OBJDIR)pwd.o $(OBJDIR)regex.o $(OBJDIR)search.o $(OBJDIR)setjmp.o $(OBJDIR)signal.o $(OBJDIR)stdlib.o $(OBJDIR)stdio.o $(OBJDIR)string.o $(OBJDIR)strings.o $(OBJDIR)stropts.o $(OBJDIR)sys/ipc.o $(OBJDIR)sys/mman.o $(OBJDIR)sys/mount.o $(OBJDIR)sys/ptrace.o $(OBJDIR)sys/reboot.o $(OBJDIR)sys/resource.o $(OBJDIR)sys/select.o $(OBJDIR)sys/shm.o $(OBJDIR)sys/stat.o $(OBJDIR)sys/statvfs.o $(OBJDIR)sys/time.o $(OBJDIR)sys/times.o $(OBJDIR)sys/utsname.o $(OBJDIR)sys/wait.o $(OBJDIR)syscalls.o $(OBJDIR)syslog.o $(OBJDIR)termios.o $(OBJDIR)time.o $(OBJDIR)ucontext.o $(OBJDIR)unistd.o $(OBJDIR)utime.o $(OBJDIR)utmpx.o $(OBJDIR)wchar.o
++libc_OBJS = $(OBJDIR)ctype.lo $(OBJDIR)dirent.lo $(OBJDIR)errno.lo $(OBJDIR)fcntl.lo $(OBJDIR)float.lo $(OBJDIR)fnmatch.lo $(OBJDIR)grp.lo $(OBJDIR)iconv.lo $(OBJDIR)langinfo.lo $(OBJDIR)libgen.lo $(OBJDIR)locale.lo $(OBJDIR)net/if.lo $(OBJDIR)poll.lo $(OBJDIR)pwd.lo $(OBJDIR)regex.lo $(OBJDIR)search.lo $(OBJDIR)setjmp.lo $(OBJDIR)signal.lo $(OBJDIR)stdlib.lo $(OBJDIR)stdio.lo $(OBJDIR)string.lo $(OBJDIR)strings.lo $(OBJDIR)stropts.lo $(OBJDIR)sys/ipc.lo $(OBJDIR)sys/mman.lo $(OBJDIR)sys/mount.lo $(OBJDIR)sys/ptrace.lo $(OBJDIR)sys/reboot.lo $(OBJDIR)sys/resource.lo $(OBJDIR)sys/select.lo $(OBJDIR)sys/shm.lo $(OBJDIR)sys/stat.lo $(OBJDIR)sys/statvfs.lo $(OBJDIR)sys/time.lo $(OBJDIR)sys/times.lo $(OBJDIR)sys/utsname.lo $(OBJDIR)sys/wait.lo $(OBJDIR)syscalls.lo $(OBJDIR)syslog.lo $(OBJDIR)termios.lo $(OBJDIR)time.lo $(OBJDIR)ucontext.lo $(OBJDIR)unistd.lo $(OBJDIR)utime.lo $(OBJDIR)utmpx.lo $(OBJDIR)wchar.lo
+ libc_CFLAGS = $(CPPFLAGSF) $(CPPFLAGS) $(CFLAGSF) $(CFLAGS)
+ libc_LDFLAGS = $(LDFLAGSF) $(LDFLAGS) `$(CC) -print-libgcc-file-name`
+ libc_ASFLAGS = $(CPPFLAGSF) $(CPPFLAGS) $(ASFLAGS)
+ 
+-$(OBJDIR)libc.a: $(libc_OBJS)
+-	$(AR) -rc $(OBJDIR)libc.a $(libc_OBJS)
+-	$(RANLIB) $(OBJDIR)libc.a
+-
+-$(OBJDIR)libc.so.0.0 $(OBJDIR)libc.so.0 $(OBJDIR)libc.so: $(libc_OBJS)
+-	$(CCSHARED) -o $(OBJDIR)libc.so.0.0 -Wl,-soname,libc.so.0 $(libc_OBJS) $(libc_LDFLAGS)
+-	$(LN) -s -- libc.so.0.0 $(OBJDIR)libc.so.0
+-	$(LN) -s -- libc.so.0.0 $(OBJDIR)libc.so
++$(OBJDIR)libc.la: $(libc_OBJS)
++	$(LIBTOOL) --mode=link $(CC) -o $(OBJDIR)libc.la $(libc_OBJS) `$(CC) -print-libgcc-file-name` -rpath $(LIBDIR) $(libc_LDFLAGS)
+ 
+ start.o_OBJS = $(OBJDIR)start.o
+ start.o_ASFLAGS = $(CPPFLAGSF) $(CPPFLAGS) $(ASFLAGS)
+ 
+-$(OBJDIR)ctype.o: ctype.c
+-	$(CC) $(libc_CFLAGS) -o $(OBJDIR)ctype.o -c ctype.c
++$(OBJDIR)ctype.o ctype.lo: ctype.c
++	$(LIBTOOL) --mode=compile $(CC) $(libc_CFLAGS) -o $(OBJDIR)ctype.o -c ctype.c
+ 
+-$(OBJDIR)dirent.o: dirent.c
+-	$(CC) $(libc_CFLAGS) -o $(OBJDIR)dirent.o -c dirent.c
++$(OBJDIR)dirent.o dirent.lo: dirent.c
++	$(LIBTOOL) --mode=compile $(CC) $(libc_CFLAGS) -o $(OBJDIR)dirent.o -c dirent.c
+ 
+-$(OBJDIR)errno.o: errno.c
+-	$(CC) $(libc_CFLAGS) -o $(OBJDIR)errno.o -c errno.c
++$(OBJDIR)errno.o errno.lo: errno.c
++	$(LIBTOOL) --mode=compile $(CC) $(libc_CFLAGS) -o $(OBJDIR)errno.o -c errno.c
+ 
+-$(OBJDIR)fcntl.o: fcntl.c syscalls.h
+-	$(CC) $(libc_CFLAGS) -o $(OBJDIR)fcntl.o -c fcntl.c
++$(OBJDIR)fcntl.o fcntl.lo: fcntl.c syscalls.h
++	$(LIBTOOL) --mode=compile $(CC) $(libc_CFLAGS) -o $(OBJDIR)fcntl.o -c fcntl.c
+ 
+-$(OBJDIR)float.o: float.c
+-	$(CC) $(libc_CFLAGS) -o $(OBJDIR)float.o -c float.c
++$(OBJDIR)float.o float.lo: float.c
++	$(LIBTOOL) --mode=compile $(CC) $(libc_CFLAGS) -o $(OBJDIR)float.o -c float.c
+ 
+-$(OBJDIR)fnmatch.o: fnmatch.c
+-	$(CC) $(libc_CFLAGS) -o $(OBJDIR)fnmatch.o -c fnmatch.c
++$(OBJDIR)fnmatch.o fnmatch.lo: fnmatch.c
++	$(LIBTOOL) --mode=compile $(CC) $(libc_CFLAGS) -o $(OBJDIR)fnmatch.o -c fnmatch.c
+ 
+-$(OBJDIR)grp.o: grp.c
+-	$(CC) $(libc_CFLAGS) -o $(OBJDIR)grp.o -c grp.c
++$(OBJDIR)grp.o grp.lo: grp.c
++	$(LIBTOOL) --mode=compile $(CC) $(libc_CFLAGS) -o $(OBJDIR)grp.o -c grp.c
+ 
+-$(OBJDIR)iconv.o: iconv.c
+-	$(CC) $(libc_CFLAGS) -o $(OBJDIR)iconv.o -c iconv.c
++$(OBJDIR)iconv.o iconv.lo: iconv.c
++	$(LIBTOOL) --mode=compile $(CC) $(libc_CFLAGS) -o $(OBJDIR)iconv.o -c iconv.c
+ 
+-$(OBJDIR)langinfo.o: langinfo.c
+-	$(CC) $(libc_CFLAGS) -o $(OBJDIR)langinfo.o -c langinfo.c
++$(OBJDIR)langinfo.o langinfo.lo: langinfo.c
++	$(LIBTOOL) --mode=compile $(CC) $(libc_CFLAGS) -o $(OBJDIR)langinfo.o -c langinfo.c
+ 
+-$(OBJDIR)libgen.o: libgen.c
+-	$(CC) $(libc_CFLAGS) -o $(OBJDIR)libgen.o -c libgen.c
++$(OBJDIR)libgen.o libgen.lo: libgen.c
++	$(LIBTOOL) --mode=compile $(CC) $(libc_CFLAGS) -o $(OBJDIR)libgen.o -c libgen.c
+ 
+-$(OBJDIR)locale.o: locale.c
+-	$(CC) $(libc_CFLAGS) -o $(OBJDIR)locale.o -c locale.c
++$(OBJDIR)locale.o locale.lo: locale.c
++	$(LIBTOOL) --mode=compile $(CC) $(libc_CFLAGS) -o $(OBJDIR)locale.o -c locale.c
+ 
+-$(OBJDIR)net/if.o: net/if.c
++$(OBJDIR)net/if.o net/if.lo: net/if.c
+ 	@[ -d "$(OBJDIR)net" ] || $(MKDIR) -- "$(OBJDIR)net"
+-	$(CC) $(libc_CFLAGS) -o $(OBJDIR)net/if.o -c net/if.c
++	$(LIBTOOL) --mode=compile $(CC) $(libc_CFLAGS) -o $(OBJDIR)net/if.o -c net/if.c
+ 
+-$(OBJDIR)poll.o: poll.c
+-	$(CC) $(libc_CFLAGS) -o $(OBJDIR)poll.o -c poll.c
++$(OBJDIR)poll.o poll.lo: poll.c
++	$(LIBTOOL) --mode=compile $(CC) $(libc_CFLAGS) -o $(OBJDIR)poll.o -c poll.c
+ 
+-$(OBJDIR)pwd.o: pwd.c
+-	$(CC) $(libc_CFLAGS) -o $(OBJDIR)pwd.o -c pwd.c
++$(OBJDIR)pwd.o pwd.lo: pwd.c
++	$(LIBTOOL) --mode=compile $(CC) $(libc_CFLAGS) -o $(OBJDIR)pwd.o -c pwd.c
+ 
+-$(OBJDIR)regex.o: regex.c
+-	$(CC) $(libc_CFLAGS) -o $(OBJDIR)regex.o -c regex.c
++$(OBJDIR)regex.o regex.lo: regex.c
++	$(LIBTOOL) --mode=compile $(CC) $(libc_CFLAGS) -o $(OBJDIR)regex.o -c regex.c
+ 
+-$(OBJDIR)search.o: search.c
+-	$(CC) $(libc_CFLAGS) -o $(OBJDIR)search.o -c search.c
++$(OBJDIR)search.o search.lo: search.c
++	$(LIBTOOL) --mode=compile $(CC) $(libc_CFLAGS) -o $(OBJDIR)search.o -c search.c
+ 
+-$(OBJDIR)setjmp.o: setjmp.c
+-	$(CC) $(libc_CFLAGS) -o $(OBJDIR)setjmp.o -c setjmp.c
++$(OBJDIR)setjmp.o setjmp.lo: setjmp.c
++	$(LIBTOOL) --mode=compile $(CC) $(libc_CFLAGS) -o $(OBJDIR)setjmp.o -c setjmp.c
+ 
+-$(OBJDIR)signal.o: signal.c
+-	$(CC) $(libc_CFLAGS) -o $(OBJDIR)signal.o -c signal.c
++$(OBJDIR)signal.o signal.lo: signal.c
++	$(LIBTOOL) --mode=compile $(CC) $(libc_CFLAGS) -o $(OBJDIR)signal.o -c signal.c
+ 
+-$(OBJDIR)stdlib.o: stdlib.c
+-	$(CC) $(libc_CFLAGS) -o $(OBJDIR)stdlib.o -c stdlib.c
++$(OBJDIR)stdlib.o stdlib.lo: stdlib.c
++	$(LIBTOOL) --mode=compile $(CC) $(libc_CFLAGS) -o $(OBJDIR)stdlib.o -c stdlib.c
+ 
+-$(OBJDIR)stdio.o: stdio.c
+-	$(CC) $(libc_CFLAGS) -o $(OBJDIR)stdio.o -c stdio.c
++$(OBJDIR)stdio.o stdio.lo: stdio.c
++	$(LIBTOOL) --mode=compile $(CC) $(libc_CFLAGS) -o $(OBJDIR)stdio.o -c stdio.c
+ 
+-$(OBJDIR)string.o: string.c
+-	$(CC) $(libc_CFLAGS) -o $(OBJDIR)string.o -c string.c
++$(OBJDIR)string.o string.lo: string.c
++	$(LIBTOOL) --mode=compile $(CC) $(libc_CFLAGS) -o $(OBJDIR)string.o -c string.c
+ 
+-$(OBJDIR)strings.o: strings.c
+-	$(CC) $(libc_CFLAGS) -o $(OBJDIR)strings.o -c strings.c
++$(OBJDIR)strings.o strings.lo: strings.c
++	$(LIBTOOL) --mode=compile $(CC) $(libc_CFLAGS) -o $(OBJDIR)strings.o -c strings.c
+ 
+-$(OBJDIR)stropts.o: stropts.c
+-	$(CC) $(libc_CFLAGS) -o $(OBJDIR)stropts.o -c stropts.c
++$(OBJDIR)stropts.o stropts.lo: stropts.c
++	$(LIBTOOL) --mode=compile $(CC) $(libc_CFLAGS) -o $(OBJDIR)stropts.o -c stropts.c
+ 
+-$(OBJDIR)sys/ipc.o: sys/ipc.c syscalls.h
++$(OBJDIR)sys/ipc.o sys/ipc.lo: sys/ipc.c syscalls.h
+ 	@[ -d "$(OBJDIR)sys" ] || $(MKDIR) -- "$(OBJDIR)sys"
+-	$(CC) $(libc_CFLAGS) -o $(OBJDIR)sys/ipc.o -c sys/ipc.c
++	$(LIBTOOL) --mode=compile $(CC) $(libc_CFLAGS) -o $(OBJDIR)sys/ipc.o -c sys/ipc.c
+ 
+-$(OBJDIR)sys/mman.o: sys/mman.c syscalls.h
++$(OBJDIR)sys/mman.o sys/mman.lo: sys/mman.c syscalls.h
+ 	@[ -d "$(OBJDIR)sys" ] || $(MKDIR) -- "$(OBJDIR)sys"
+-	$(CC) $(libc_CFLAGS) -o $(OBJDIR)sys/mman.o -c sys/mman.c
++	$(LIBTOOL) --mode=compile $(CC) $(libc_CFLAGS) -o $(OBJDIR)sys/mman.o -c sys/mman.c
+ 
+-$(OBJDIR)sys/mount.o: sys/mount.c syscalls.h
++$(OBJDIR)sys/mount.o sys/mount.lo: sys/mount.c syscalls.h
+ 	@[ -d "$(OBJDIR)sys" ] || $(MKDIR) -- "$(OBJDIR)sys"
+-	$(CC) $(libc_CFLAGS) -o $(OBJDIR)sys/mount.o -c sys/mount.c
++	$(LIBTOOL) --mode=compile $(CC) $(libc_CFLAGS) -o $(OBJDIR)sys/mount.o -c sys/mount.c
+ 
+-$(OBJDIR)sys/ptrace.o: sys/ptrace.c syscalls.h
++$(OBJDIR)sys/ptrace.o sys/ptrace.lo: sys/ptrace.c syscalls.h
+ 	@[ -d "$(OBJDIR)sys" ] || $(MKDIR) -- "$(OBJDIR)sys"
+-	$(CC) $(libc_CFLAGS) -o $(OBJDIR)sys/ptrace.o -c sys/ptrace.c
++	$(LIBTOOL) --mode=compile $(CC) $(libc_CFLAGS) -o $(OBJDIR)sys/ptrace.o -c sys/ptrace.c
+ 
+-$(OBJDIR)sys/reboot.o: sys/reboot.c
++$(OBJDIR)sys/reboot.o sys/reboot.lo: sys/reboot.c
+ 	@[ -d "$(OBJDIR)sys" ] || $(MKDIR) -- "$(OBJDIR)sys"
+-	$(CC) $(libc_CFLAGS) -o $(OBJDIR)sys/reboot.o -c sys/reboot.c
++	$(LIBTOOL) --mode=compile $(CC) $(libc_CFLAGS) -o $(OBJDIR)sys/reboot.o -c sys/reboot.c
+ 
+-$(OBJDIR)sys/resource.o: sys/resource.c syscalls.h
++$(OBJDIR)sys/resource.o sys/resource.lo: sys/resource.c syscalls.h
+ 	@[ -d "$(OBJDIR)sys" ] || $(MKDIR) -- "$(OBJDIR)sys"
+-	$(CC) $(libc_CFLAGS) -o $(OBJDIR)sys/resource.o -c sys/resource.c
++	$(LIBTOOL) --mode=compile $(CC) $(libc_CFLAGS) -o $(OBJDIR)sys/resource.o -c sys/resource.c
+ 
+-$(OBJDIR)sys/select.o: sys/select.c syscalls.h
++$(OBJDIR)sys/select.o sys/select.lo: sys/select.c syscalls.h
+ 	@[ -d "$(OBJDIR)sys" ] || $(MKDIR) -- "$(OBJDIR)sys"
+-	$(CC) $(libc_CFLAGS) -o $(OBJDIR)sys/select.o -c sys/select.c
++	$(LIBTOOL) --mode=compile $(CC) $(libc_CFLAGS) -o $(OBJDIR)sys/select.o -c sys/select.c
+ 
+-$(OBJDIR)sys/shm.o: sys/shm.c syscalls.h
++$(OBJDIR)sys/shm.o sys/shm.lo: sys/shm.c syscalls.h
+ 	@[ -d "$(OBJDIR)sys" ] || $(MKDIR) -- "$(OBJDIR)sys"
+-	$(CC) $(libc_CFLAGS) -o $(OBJDIR)sys/shm.o -c sys/shm.c
++	$(LIBTOOL) --mode=compile $(CC) $(libc_CFLAGS) -o $(OBJDIR)sys/shm.o -c sys/shm.c
+ 
+-$(OBJDIR)sys/stat.o: sys/stat.c syscalls.h
++$(OBJDIR)sys/stat.o sys/stat.lo: sys/stat.c syscalls.h
+ 	@[ -d "$(OBJDIR)sys" ] || $(MKDIR) -- "$(OBJDIR)sys"
+-	$(CC) $(libc_CFLAGS) -o $(OBJDIR)sys/stat.o -c sys/stat.c
++	$(LIBTOOL) --mode=compile $(CC) $(libc_CFLAGS) -o $(OBJDIR)sys/stat.o -c sys/stat.c
+ 
+-$(OBJDIR)sys/statvfs.o: sys/statvfs.c syscalls.h
++$(OBJDIR)sys/statvfs.o sys/statvfs.lo: sys/statvfs.c syscalls.h
+ 	@[ -d "$(OBJDIR)sys" ] || $(MKDIR) -- "$(OBJDIR)sys"
+-	$(CC) $(libc_CFLAGS) -o $(OBJDIR)sys/statvfs.o -c sys/statvfs.c
++	$(LIBTOOL) --mode=compile $(CC) $(libc_CFLAGS) -o $(OBJDIR)sys/statvfs.o -c sys/statvfs.c
+ 
+-$(OBJDIR)sys/time.o: sys/time.c
++$(OBJDIR)sys/time.o sys/time.lo: sys/time.c
+ 	@[ -d "$(OBJDIR)sys" ] || $(MKDIR) -- "$(OBJDIR)sys"
+-	$(CC) $(libc_CFLAGS) -o $(OBJDIR)sys/time.o -c sys/time.c
++	$(LIBTOOL) --mode=compile $(CC) $(libc_CFLAGS) -o $(OBJDIR)sys/time.o -c sys/time.c
+ 
+-$(OBJDIR)sys/times.o: sys/times.c syscalls.h
++$(OBJDIR)sys/times.o sys/times.lo: sys/times.c syscalls.h
+ 	@[ -d "$(OBJDIR)sys" ] || $(MKDIR) -- "$(OBJDIR)sys"
+-	$(CC) $(libc_CFLAGS) -o $(OBJDIR)sys/times.o -c sys/times.c
++	$(LIBTOOL) --mode=compile $(CC) $(libc_CFLAGS) -o $(OBJDIR)sys/times.o -c sys/times.c
+ 
+-$(OBJDIR)sys/utsname.o: sys/utsname.c
++$(OBJDIR)sys/utsname.o sys/utsname.lo: sys/utsname.c
+ 	@[ -d "$(OBJDIR)sys" ] || $(MKDIR) -- "$(OBJDIR)sys"
+-	$(CC) $(libc_CFLAGS) -o $(OBJDIR)sys/utsname.o -c sys/utsname.c
++	$(LIBTOOL) --mode=compile $(CC) $(libc_CFLAGS) -o $(OBJDIR)sys/utsname.o -c sys/utsname.c
+ 
+-$(OBJDIR)sys/wait.o: sys/wait.c syscalls.h
++$(OBJDIR)sys/wait.o sys/wait.lo: sys/wait.c syscalls.h
+ 	@[ -d "$(OBJDIR)sys" ] || $(MKDIR) -- "$(OBJDIR)sys"
+-	$(CC) $(libc_CFLAGS) -o $(OBJDIR)sys/wait.o -c sys/wait.c
++	$(LIBTOOL) --mode=compile $(CC) $(libc_CFLAGS) -o $(OBJDIR)sys/wait.o -c sys/wait.c
+ 
+-$(OBJDIR)syscalls.o: syscalls.S kernel/darwin/amd64/syscalls.S kernel/freebsd/amd64/syscalls.S kernel/freebsd/i386/syscalls.S kernel/linux/common.S kernel/linux/amd64/syscalls.S kernel/linux/arm/syscalls.S kernel/linux/i386/syscalls.S kernel/linux/sparc/syscalls.S kernel/netbsd/common.S kernel/netbsd/amd64/syscalls.S kernel/netbsd/i386/syscalls.S kernel/netbsd/sparc/syscalls.S kernel/netbsd/sparc64/syscalls.S kernel/openbsd/arm/syscalls.S kernel/openbsd/i386/syscalls.S
+-	$(AS) $(libc_ASFLAGS) -o $(OBJDIR)syscalls.o syscalls.S
++$(OBJDIR)syscalls.o syscalls.lo: syscalls.S kernel/darwin/amd64/syscalls.S kernel/freebsd/amd64/syscalls.S kernel/freebsd/i386/syscalls.S kernel/linux/common.S kernel/linux/amd64/syscalls.S kernel/linux/arm/syscalls.S kernel/linux/i386/syscalls.S kernel/linux/sparc/syscalls.S kernel/netbsd/common.S kernel/netbsd/amd64/syscalls.S kernel/netbsd/i386/syscalls.S kernel/netbsd/sparc/syscalls.S kernel/netbsd/sparc64/syscalls.S kernel/openbsd/arm/syscalls.S kernel/openbsd/i386/syscalls.S
++	$(LIBTOOL) --mode=compile $(AS) $(libc_ASFLAGS) -o $(OBJDIR)syscalls.o syscalls.S
+ 
+-$(OBJDIR)syslog.o: syslog.c
+-	$(CC) $(libc_CFLAGS) -o $(OBJDIR)syslog.o -c syslog.c
++$(OBJDIR)syslog.o syslog.lo: syslog.c
++	$(LIBTOOL) --mode=compile $(CC) $(libc_CFLAGS) -o $(OBJDIR)syslog.o -c syslog.c
+ 
+-$(OBJDIR)termios.o: termios.c syscalls.h
+-	$(CC) $(libc_CFLAGS) -o $(OBJDIR)termios.o -c termios.c
++$(OBJDIR)termios.o termios.lo: termios.c syscalls.h
++	$(LIBTOOL) --mode=compile $(CC) $(libc_CFLAGS) -o $(OBJDIR)termios.o -c termios.c
+ 
+-$(OBJDIR)time.o: time.c
+-	$(CC) $(libc_CFLAGS) -o $(OBJDIR)time.o -c time.c
++$(OBJDIR)time.o time.lo: time.c
++	$(LIBTOOL) --mode=compile $(CC) $(libc_CFLAGS) -o $(OBJDIR)time.o -c time.c
+ 
+-$(OBJDIR)ucontext.o: ucontext.c syscalls.h
+-	$(CC) $(libc_CFLAGS) -o $(OBJDIR)ucontext.o -c ucontext.c
++$(OBJDIR)ucontext.o ucontext.lo: ucontext.c syscalls.h
++	$(LIBTOOL) --mode=compile $(CC) $(libc_CFLAGS) -o $(OBJDIR)ucontext.o -c ucontext.c
+ 
+-$(OBJDIR)unistd.o: unistd.c syscalls.h
+-	$(CC) $(libc_CFLAGS) -o $(OBJDIR)unistd.o -c unistd.c
++$(OBJDIR)unistd.o unistd.lo: unistd.c syscalls.h
++	$(LIBTOOL) --mode=compile $(CC) $(libc_CFLAGS) -o $(OBJDIR)unistd.o -c unistd.c
+ 
+-$(OBJDIR)utime.o: utime.c
+-	$(CC) $(libc_CFLAGS) -o $(OBJDIR)utime.o -c utime.c
++$(OBJDIR)utime.o utime.lo: utime.c
++	$(LIBTOOL) --mode=compile $(CC) $(libc_CFLAGS) -o $(OBJDIR)utime.o -c utime.c
+ 
+-$(OBJDIR)utmpx.o: utmpx.c
+-	$(CC) $(libc_CFLAGS) -o $(OBJDIR)utmpx.o -c utmpx.c
++$(OBJDIR)utmpx.o utmpx.lo: utmpx.c
++	$(LIBTOOL) --mode=compile $(CC) $(libc_CFLAGS) -o $(OBJDIR)utmpx.o -c utmpx.c
+ 
+-$(OBJDIR)wchar.o: wchar.c
+-	$(CC) $(libc_CFLAGS) -o $(OBJDIR)wchar.o -c wchar.c
++$(OBJDIR)wchar.o wchar.lo: wchar.c
++	$(LIBTOOL) --mode=compile $(CC) $(libc_CFLAGS) -o $(OBJDIR)wchar.o -c wchar.c
+ 
+ $(OBJDIR)start.o: start.S kernel/freebsd/amd64/start.S kernel/freebsd/i386/start.S kernel/linux/amd64/start.S kernel/linux/arm/start.S kernel/linux/i386/start.S kernel/linux/sparc/start.S kernel/netbsd/start.S kernel/netbsd/amd64/start.S kernel/netbsd/i386/start.S kernel/netbsd/sparc64/start.S kernel/netbsd/sparc/start.S kernel/openbsd/arm/start.S kernel/openbsd/i386/start.S kernel/solaris/sparc/start.S kernel/whitix/i386/start.S
+ 	$(AS) $(start.o_ASFLAGS) -o $(OBJDIR)start.o start.S
+@@ -217,19 +223,14 @@
+ install: $(TARGETS)
+ 	@for i in $(SUBDIRS); do (cd "$$i" && $(MAKE) install) || exit; done
+ 	$(MKDIR) $(DESTDIR)$(LIBDIR)
+-	$(INSTALL) -m 0644 $(OBJDIR)libc.a $(DESTDIR)$(LIBDIR)/libc.a
+-	$(INSTALL) -m 0755 $(OBJDIR)libc.so.0.0 $(DESTDIR)$(LIBDIR)/libc.so.0.0
+-	$(LN) -s -- libc.so.0.0 $(DESTDIR)$(LIBDIR)/libc.so.0
+-	$(LN) -s -- libc.so.0.0 $(DESTDIR)$(LIBDIR)/libc.so
++	$(LIBTOOL) --mode=install $(INSTALL) -m 0755 $(OBJDIR)libc.la $(DESTDIR)$(LIBDIR)/libc.la
++	$(LIBTOOL) --mode=finish $(DESTDIR)/$(LIBDIR)
+ 	$(MKDIR) $(DESTDIR)$(LIBDIR)
+ 	$(INSTALL) -m 0644 $(OBJDIR)start.o $(DESTDIR)$(LIBDIR)/start.o
+ 
+ uninstall:
+ 	@for i in $(SUBDIRS); do (cd "$$i" && $(MAKE) uninstall) || exit; done
+-	$(RM) -- $(DESTDIR)$(LIBDIR)/libc.a
+-	$(RM) -- $(DESTDIR)$(LIBDIR)/libc.so.0.0
+-	$(RM) -- $(DESTDIR)$(LIBDIR)/libc.so.0
+-	$(RM) -- $(DESTDIR)$(LIBDIR)/libc.so
++	$(LIBTOOL) --mode=uninstall $(RM) -- $(DESTDIR)$(LIBDIR)/libc.la
+ 	$(RM) -- $(DESTDIR)$(LIBDIR)/start.o
+ 
+ .PHONY: all subdirs clean distclean install uninstall
+diff -Naur libc-0.1.2.orig/src/dl/Makefile libc-0.1.2/src/dl/Makefile
+--- libc-0.1.2.orig/src/dl/Makefile	2015-05-11 01:06:45.000000000 +0200
++++ libc-0.1.2/src/dl/Makefile	2015-05-23 16:07:26.000000000 +0200
+@@ -1,4 +1,4 @@
+-TARGETS	= $(OBJDIR)libdl.a $(OBJDIR)libdl.so.0.0 $(OBJDIR)libdl.so.0 $(OBJDIR)libdl.so
++TARGETS	= $(OBJDIR)libdl.la
+ OBJDIR	=
+ PREFIX	= /usr/local
+ DESTDIR	=
+@@ -12,6 +12,7 @@
+ AR	= ar
+ RANLIB	= ranlib
+ CCSHARED= $(CC) -nostdlib -shared
++LIBTOOL	= libtool
+ RM	= rm -f
+ LN	= ln -f
+ MKDIR	= mkdir -m 0755 -p
+@@ -20,21 +21,15 @@
+ 
+ all: $(TARGETS)
+ 
+-libdl_OBJS = $(OBJDIR)dlfcn.o
++libdl_OBJS = $(OBJDIR)dlfcn.lo
+ libdl_CFLAGS = $(CPPFLAGSF) $(CPPFLAGS) $(CFLAGSF) $(CFLAGS)
+ libdl_LDFLAGS = $(LDFLAGSF) $(LDFLAGS)
+ 
+-$(OBJDIR)libdl.a: $(libdl_OBJS)
+-	$(AR) -rc $(OBJDIR)libdl.a $(libdl_OBJS)
+-	$(RANLIB) $(OBJDIR)libdl.a
+-
+-$(OBJDIR)libdl.so.0.0 $(OBJDIR)libdl.so.0 $(OBJDIR)libdl.so: $(libdl_OBJS)
+-	$(CCSHARED) -o $(OBJDIR)libdl.so.0.0 -Wl,-soname,libdl.so.0 $(libdl_OBJS) $(libdl_LDFLAGS)
+-	$(LN) -s -- libdl.so.0.0 $(OBJDIR)libdl.so.0
+-	$(LN) -s -- libdl.so.0.0 $(OBJDIR)libdl.so
++$(OBJDIR)libdl.la: $(libdl_OBJS)
++	$(LIBTOOL) --mode=link $(CC) -o $(OBJDIR)libdl.la $(libdl_OBJS) -rpath $(LIBDIR) $(libdl_LDFLAGS)
+ 
+-$(OBJDIR)dlfcn.o: dlfcn.c ../../include/dl/dlfcn.h ../../include/dl/elf.h
+-	$(CC) $(libdl_CFLAGS) -o $(OBJDIR)dlfcn.o -c dlfcn.c
++$(OBJDIR)dlfcn.o dlfcn.lo: dlfcn.c ../../include/dl/dlfcn.h ../../include/dl/elf.h
++	$(LIBTOOL) --mode=compile $(CC) $(libdl_CFLAGS) -o $(OBJDIR)dlfcn.o -c dlfcn.c
+ 
+ clean:
+ 	$(RM) -- $(libdl_OBJS)
+@@ -44,15 +39,10 @@
+ 
+ install: $(TARGETS)
+ 	$(MKDIR) $(DESTDIR)$(LIBDIR)
+-	$(INSTALL) -m 0644 $(OBJDIR)libdl.a $(DESTDIR)$(LIBDIR)/libdl.a
+-	$(INSTALL) -m 0755 $(OBJDIR)libdl.so.0.0 $(DESTDIR)$(LIBDIR)/libdl.so.0.0
+-	$(LN) -s -- libdl.so.0.0 $(DESTDIR)$(LIBDIR)/libdl.so.0
+-	$(LN) -s -- libdl.so.0.0 $(DESTDIR)$(LIBDIR)/libdl.so
++	$(LIBTOOL) --mode=install $(INSTALL) -m 0755 $(OBJDIR)libdl.la $(DESTDIR)$(LIBDIR)/libdl.la
++	$(LIBTOOL) --mode=finish $(DESTDIR)/$(LIBDIR)
+ 
+ uninstall:
+-	$(RM) -- $(DESTDIR)$(LIBDIR)/libdl.a
+-	$(RM) -- $(DESTDIR)$(LIBDIR)/libdl.so.0.0
+-	$(RM) -- $(DESTDIR)$(LIBDIR)/libdl.so.0
+-	$(RM) -- $(DESTDIR)$(LIBDIR)/libdl.so
++	$(LIBTOOL) --mode=uninstall $(RM) -- $(DESTDIR)$(LIBDIR)/libdl.la
+ 
+ .PHONY: all clean distclean install uninstall
+diff -Naur libc-0.1.2.orig/src/dl/project.conf libc-0.1.2/src/dl/project.conf
+--- libc-0.1.2.orig/src/dl/project.conf	2015-04-19 17:08:24.000000000 +0200
++++ libc-0.1.2/src/dl/project.conf	2015-05-23 15:51:55.000000000 +0200
+@@ -7,7 +7,7 @@
+ dist=Makefile
+ 
+ [libdl]
+-type=library
++type=libtool
+ sources=dlfcn.c
+ install=$(LIBDIR)
+ 
+diff -Naur libc-0.1.2.orig/src/math/Makefile libc-0.1.2/src/math/Makefile
+--- libc-0.1.2.orig/src/math/Makefile	2015-05-11 01:06:45.000000000 +0200
++++ libc-0.1.2/src/math/Makefile	2015-05-23 16:07:26.000000000 +0200
+@@ -1,5 +1,5 @@
+ SUBDIRS	= amd64 i386
+-TARGETS	= $(OBJDIR)libm.a $(OBJDIR)libm.so.0.0 $(OBJDIR)libm.so.0 $(OBJDIR)libm.so
++TARGETS	= $(OBJDIR)libm.la
+ OBJDIR	=
+ PREFIX	= /usr/local
+ DESTDIR	=
+@@ -15,6 +15,7 @@
+ AR	= ar
+ RANLIB	= ranlib
+ CCSHARED= $(CC) -shared
++LIBTOOL	= libtool
+ RM	= rm -f
+ LN	= ln -f
+ MKDIR	= mkdir -m 0755 -p
+@@ -30,25 +31,19 @@
+ 		$(MAKE) OBJDIR="$(OBJDIR)$$i/"; \
+ 		else $(MAKE); fi) || exit; done
+ 
+-libm_OBJS = $(OBJDIR)arch.o $(OBJDIR)math.o
++libm_OBJS = $(OBJDIR)arch.lo $(OBJDIR)math.lo
+ libm_ASFLAGS = $(CPPFLAGSF) $(CPPFLAGS) $(ASFLAGS)
+ libm_CFLAGS = $(CPPFLAGSF) $(CPPFLAGS) $(CFLAGSF) $(CFLAGS)
+ libm_LDFLAGS = $(LDFLAGSF) $(LDFLAGS)
+ 
+-$(OBJDIR)libm.a: $(libm_OBJS)
+-	$(AR) -rc $(OBJDIR)libm.a $(libm_OBJS)
+-	$(RANLIB) $(OBJDIR)libm.a
+-
+-$(OBJDIR)libm.so.0.0 $(OBJDIR)libm.so.0 $(OBJDIR)libm.so: $(libm_OBJS)
+-	$(CCSHARED) -o $(OBJDIR)libm.so.0.0 -Wl,-soname,libm.so.0 $(libm_OBJS) $(libm_LDFLAGS)
+-	$(LN) -s -- libm.so.0.0 $(OBJDIR)libm.so.0
+-	$(LN) -s -- libm.so.0.0 $(OBJDIR)libm.so
++$(OBJDIR)libm.la: $(libm_OBJS)
++	$(LIBTOOL) --mode=link $(CC) -o $(OBJDIR)libm.la $(libm_OBJS) -rpath $(LIBDIR) $(libm_LDFLAGS)
+ 
+-$(OBJDIR)arch.o: arch.S amd64/math.S i386/math.S
+-	$(AS) $(libm_ASFLAGS) -o $(OBJDIR)arch.o arch.S
++$(OBJDIR)arch.o arch.lo: arch.S amd64/math.S i386/math.S
++	$(LIBTOOL) --mode=compile $(AS) $(libm_ASFLAGS) -o $(OBJDIR)arch.o arch.S
+ 
+-$(OBJDIR)math.o: math.c ../../include/math/math.h
+-	$(CC) $(libm_CFLAGS) -o $(OBJDIR)math.o -c math.c
++$(OBJDIR)math.o math.lo: math.c ../../include/math/math.h
++	$(LIBTOOL) --mode=compile $(CC) $(libm_CFLAGS) -o $(OBJDIR)math.o -c math.c
+ 
+ clean:
+ 	@for i in $(SUBDIRS); do (cd "$$i" && $(MAKE) clean) || exit; done
+@@ -62,16 +57,11 @@
+ install: $(TARGETS)
+ 	@for i in $(SUBDIRS); do (cd "$$i" && $(MAKE) install) || exit; done
+ 	$(MKDIR) $(DESTDIR)$(LIBDIR)
+-	$(INSTALL) -m 0644 $(OBJDIR)libm.a $(DESTDIR)$(LIBDIR)/libm.a
+-	$(INSTALL) -m 0755 $(OBJDIR)libm.so.0.0 $(DESTDIR)$(LIBDIR)/libm.so.0.0
+-	$(LN) -s -- libm.so.0.0 $(DESTDIR)$(LIBDIR)/libm.so.0
+-	$(LN) -s -- libm.so.0.0 $(DESTDIR)$(LIBDIR)/libm.so
++	$(LIBTOOL) --mode=install $(INSTALL) -m 0755 $(OBJDIR)libm.la $(DESTDIR)$(LIBDIR)/libm.la
++	$(LIBTOOL) --mode=finish $(DESTDIR)/$(LIBDIR)
+ 
+ uninstall:
+ 	@for i in $(SUBDIRS); do (cd "$$i" && $(MAKE) uninstall) || exit; done
+-	$(RM) -- $(DESTDIR)$(LIBDIR)/libm.a
+-	$(RM) -- $(DESTDIR)$(LIBDIR)/libm.so.0.0
+-	$(RM) -- $(DESTDIR)$(LIBDIR)/libm.so.0
+-	$(RM) -- $(DESTDIR)$(LIBDIR)/libm.so
++	$(LIBTOOL) --mode=uninstall $(RM) -- $(DESTDIR)$(LIBDIR)/libm.la
+ 
+ .PHONY: all subdirs clean distclean install uninstall
+diff -Naur libc-0.1.2.orig/src/math/project.conf libc-0.1.2/src/math/project.conf
+--- libc-0.1.2.orig/src/math/project.conf	2015-04-19 17:08:24.000000000 +0200
++++ libc-0.1.2/src/math/project.conf	2015-05-23 15:52:03.000000000 +0200
+@@ -9,7 +9,7 @@
+ dist=Makefile,arch.h
+ 
+ [libm]
+-type=library
++type=libtool
+ sources=arch.S,math.c
+ install=$(LIBDIR)
+ 
+diff -Naur libc-0.1.2.orig/src/project.conf libc-0.1.2/src/project.conf
+--- libc-0.1.2.orig/src/project.conf	2015-05-11 00:55:05.000000000 +0200
++++ libc-0.1.2/src/project.conf	2015-05-23 15:52:00.000000000 +0200
+@@ -9,7 +9,7 @@
+ dist=Makefile,syscalls.h
+ 
+ [libc]
+-type=library
++type=libtool
+ sources=ctype.c,dirent.c,errno.c,fcntl.c,float.c,fnmatch.c,grp.c,iconv.c,langinfo.c,libgen.c,locale.c,net/if.c,poll.c,pwd.c,regex.c,search.c,setjmp.c,signal.c,stdlib.c,stdio.c,string.c,strings.c,stropts.c,sys/ipc.c,sys/mman.c,sys/mount.c,sys/ptrace.c,sys/reboot.c,sys/resource.c,sys/select.c,sys/shm.c,sys/stat.c,sys/statvfs.c,sys/time.c,sys/times.c,sys/utsname.c,sys/wait.c,syscalls.S,syslog.c,termios.c,time.c,ucontext.c,unistd.c,utime.c,utmpx.c,wchar.c
+ ldflags=`$(CC) -print-libgcc-file-name`
+ install=$(LIBDIR)
+diff -Naur libc-0.1.2.orig/src/pthread/Makefile libc-0.1.2/src/pthread/Makefile
+--- libc-0.1.2.orig/src/pthread/Makefile	2015-05-11 01:06:45.000000000 +0200
++++ libc-0.1.2/src/pthread/Makefile	2015-05-23 16:07:26.000000000 +0200
+@@ -1,4 +1,4 @@
+-TARGETS	= $(OBJDIR)libpthread.a $(OBJDIR)libpthread.so.0.0 $(OBJDIR)libpthread.so.0 $(OBJDIR)libpthread.so
++TARGETS	= $(OBJDIR)libpthread.la
+ OBJDIR	=
+ PREFIX	= /usr/local
+ DESTDIR	=
+@@ -12,6 +12,7 @@
+ AR	= ar
+ RANLIB	= ranlib
+ CCSHARED= $(CC) -shared
++LIBTOOL	= libtool
+ RM	= rm -f
+ LN	= ln -f
+ MKDIR	= mkdir -m 0755 -p
+@@ -20,21 +21,15 @@
+ 
+ all: $(TARGETS)
+ 
+-libpthread_OBJS = $(OBJDIR)pthread.o
++libpthread_OBJS = $(OBJDIR)pthread.lo
+ libpthread_CFLAGS = $(CPPFLAGSF) $(CPPFLAGS) $(CFLAGSF) $(CFLAGS)
+ libpthread_LDFLAGS = $(LDFLAGSF) $(LDFLAGS)
+ 
+-$(OBJDIR)libpthread.a: $(libpthread_OBJS)
+-	$(AR) -rc $(OBJDIR)libpthread.a $(libpthread_OBJS)
+-	$(RANLIB) $(OBJDIR)libpthread.a
+-
+-$(OBJDIR)libpthread.so.0.0 $(OBJDIR)libpthread.so.0 $(OBJDIR)libpthread.so: $(libpthread_OBJS)
+-	$(CCSHARED) -o $(OBJDIR)libpthread.so.0.0 -Wl,-soname,libpthread.so.0 $(libpthread_OBJS) $(libpthread_LDFLAGS)
+-	$(LN) -s -- libpthread.so.0.0 $(OBJDIR)libpthread.so.0
+-	$(LN) -s -- libpthread.so.0.0 $(OBJDIR)libpthread.so
++$(OBJDIR)libpthread.la: $(libpthread_OBJS)
++	$(LIBTOOL) --mode=link $(CC) -o $(OBJDIR)libpthread.la $(libpthread_OBJS) -rpath $(LIBDIR) $(libpthread_LDFLAGS)
+ 
+-$(OBJDIR)pthread.o: pthread.c
+-	$(CC) $(libpthread_CFLAGS) -o $(OBJDIR)pthread.o -c pthread.c
++$(OBJDIR)pthread.o pthread.lo: pthread.c
++	$(LIBTOOL) --mode=compile $(CC) $(libpthread_CFLAGS) -o $(OBJDIR)pthread.o -c pthread.c
+ 
+ clean:
+ 	$(RM) -- $(libpthread_OBJS)
+@@ -44,15 +39,10 @@
+ 
+ install: $(TARGETS)
+ 	$(MKDIR) $(DESTDIR)$(LIBDIR)
+-	$(INSTALL) -m 0644 $(OBJDIR)libpthread.a $(DESTDIR)$(LIBDIR)/libpthread.a
+-	$(INSTALL) -m 0755 $(OBJDIR)libpthread.so.0.0 $(DESTDIR)$(LIBDIR)/libpthread.so.0.0
+-	$(LN) -s -- libpthread.so.0.0 $(DESTDIR)$(LIBDIR)/libpthread.so.0
+-	$(LN) -s -- libpthread.so.0.0 $(DESTDIR)$(LIBDIR)/libpthread.so
++	$(LIBTOOL) --mode=install $(INSTALL) -m 0755 $(OBJDIR)libpthread.la $(DESTDIR)$(LIBDIR)/libpthread.la
++	$(LIBTOOL) --mode=finish $(DESTDIR)/$(LIBDIR)
+ 
+ uninstall:
+-	$(RM) -- $(DESTDIR)$(LIBDIR)/libpthread.a
+-	$(RM) -- $(DESTDIR)$(LIBDIR)/libpthread.so.0.0
+-	$(RM) -- $(DESTDIR)$(LIBDIR)/libpthread.so.0
+-	$(RM) -- $(DESTDIR)$(LIBDIR)/libpthread.so
++	$(LIBTOOL) --mode=uninstall $(RM) -- $(DESTDIR)$(LIBDIR)/libpthread.la
+ 
+ .PHONY: all clean distclean install uninstall
+diff -Naur libc-0.1.2.orig/src/pthread/project.conf libc-0.1.2/src/pthread/project.conf
+--- libc-0.1.2.orig/src/pthread/project.conf	2015-04-19 17:08:24.000000000 +0200
++++ libc-0.1.2/src/pthread/project.conf	2015-05-23 15:52:07.000000000 +0200
+@@ -6,6 +6,6 @@
+ dist=Makefile
+ 
+ [libpthread]
+-type=library
++type=libtool
+ sources=pthread.c
+ install=$(LIBDIR)
+diff -Naur libc-0.1.2.orig/src/rt/Makefile libc-0.1.2/src/rt/Makefile
+--- libc-0.1.2.orig/src/rt/Makefile	2015-05-11 01:06:45.000000000 +0200
++++ libc-0.1.2/src/rt/Makefile	2015-05-23 16:07:26.000000000 +0200
+@@ -1,5 +1,5 @@
+ SUBDIRS	= kernel/netbsd
+-TARGETS	= $(OBJDIR)librt.a $(OBJDIR)librt.so.0.0 $(OBJDIR)librt.so.0 $(OBJDIR)librt.so
++TARGETS	= $(OBJDIR)librt.la
+ OBJDIR	=
+ PREFIX	= /usr/local
+ DESTDIR	=
+@@ -15,6 +15,7 @@
+ AR	= ar
+ RANLIB	= ranlib
+ CCSHARED= $(CC) -shared
++LIBTOOL	= libtool
+ RM	= rm -f
+ LN	= ln -f
+ MKDIR	= mkdir -m 0755 -p
+@@ -30,25 +31,19 @@
+ 		$(MAKE) OBJDIR="$(OBJDIR)$$i/"; \
+ 		else $(MAKE); fi) || exit; done
+ 
+-librt_OBJS = $(OBJDIR)sched.o $(OBJDIR)syscalls.o
++librt_OBJS = $(OBJDIR)sched.lo $(OBJDIR)syscalls.lo
+ librt_CFLAGS = $(CPPFLAGSF) $(CPPFLAGS) $(CFLAGSF) $(CFLAGS)
+ librt_LDFLAGS = $(LDFLAGSF) $(LDFLAGS)
+ librt_ASFLAGS = $(CPPFLAGSF) $(CPPFLAGS) $(ASFLAGS)
+ 
+-$(OBJDIR)librt.a: $(librt_OBJS)
+-	$(AR) -rc $(OBJDIR)librt.a $(librt_OBJS)
+-	$(RANLIB) $(OBJDIR)librt.a
+-
+-$(OBJDIR)librt.so.0.0 $(OBJDIR)librt.so.0 $(OBJDIR)librt.so: $(librt_OBJS)
+-	$(CCSHARED) -o $(OBJDIR)librt.so.0.0 -Wl,-soname,librt.so.0 $(librt_OBJS) $(librt_LDFLAGS)
+-	$(LN) -s -- librt.so.0.0 $(OBJDIR)librt.so.0
+-	$(LN) -s -- librt.so.0.0 $(OBJDIR)librt.so
++$(OBJDIR)librt.la: $(librt_OBJS)
++	$(LIBTOOL) --mode=link $(CC) -o $(OBJDIR)librt.la $(librt_OBJS) -rpath $(LIBDIR) $(librt_LDFLAGS)
+ 
+-$(OBJDIR)sched.o: sched.c syscalls.h
+-	$(CC) $(librt_CFLAGS) -o $(OBJDIR)sched.o -c sched.c
++$(OBJDIR)sched.o sched.lo: sched.c syscalls.h
++	$(LIBTOOL) --mode=compile $(CC) $(librt_CFLAGS) -o $(OBJDIR)sched.o -c sched.c
+ 
+-$(OBJDIR)syscalls.o: syscalls.S syscalls.h
+-	$(AS) $(librt_ASFLAGS) -o $(OBJDIR)syscalls.o syscalls.S
++$(OBJDIR)syscalls.o syscalls.lo: syscalls.S syscalls.h
++	$(LIBTOOL) --mode=compile $(AS) $(librt_ASFLAGS) -o $(OBJDIR)syscalls.o syscalls.S
+ 
+ clean:
+ 	@for i in $(SUBDIRS); do (cd "$$i" && $(MAKE) clean) || exit; done
+@@ -62,16 +57,11 @@
+ install: $(TARGETS)
+ 	@for i in $(SUBDIRS); do (cd "$$i" && $(MAKE) install) || exit; done
+ 	$(MKDIR) $(DESTDIR)$(LIBDIR)
+-	$(INSTALL) -m 0644 $(OBJDIR)librt.a $(DESTDIR)$(LIBDIR)/librt.a
+-	$(INSTALL) -m 0755 $(OBJDIR)librt.so.0.0 $(DESTDIR)$(LIBDIR)/librt.so.0.0
+-	$(LN) -s -- librt.so.0.0 $(DESTDIR)$(LIBDIR)/librt.so.0
+-	$(LN) -s -- librt.so.0.0 $(DESTDIR)$(LIBDIR)/librt.so
++	$(LIBTOOL) --mode=install $(INSTALL) -m 0755 $(OBJDIR)librt.la $(DESTDIR)$(LIBDIR)/librt.la
++	$(LIBTOOL) --mode=finish $(DESTDIR)/$(LIBDIR)
+ 
+ uninstall:
+ 	@for i in $(SUBDIRS); do (cd "$$i" && $(MAKE) uninstall) || exit; done
+-	$(RM) -- $(DESTDIR)$(LIBDIR)/librt.a
+-	$(RM) -- $(DESTDIR)$(LIBDIR)/librt.so.0.0
+-	$(RM) -- $(DESTDIR)$(LIBDIR)/librt.so.0
+-	$(RM) -- $(DESTDIR)$(LIBDIR)/librt.so
++	$(LIBTOOL) --mode=uninstall $(RM) -- $(DESTDIR)$(LIBDIR)/librt.la
+ 
+ .PHONY: all subdirs clean distclean install uninstall
+diff -Naur libc-0.1.2.orig/src/rt/project.conf libc-0.1.2/src/rt/project.conf
+--- libc-0.1.2.orig/src/rt/project.conf	2015-04-19 17:08:24.000000000 +0200
++++ libc-0.1.2/src/rt/project.conf	2015-05-23 15:52:11.000000000 +0200
+@@ -9,7 +9,7 @@
+ dist=Makefile,syscalls.h
+ 
+ [librt]
+-type=library
++type=libtool
+ sources=sched.c,syscalls.S
+ install=$(LIBDIR)
+ 
+diff -Naur libc-0.1.2.orig/src/socket/Makefile libc-0.1.2/src/socket/Makefile
+--- libc-0.1.2.orig/src/socket/Makefile	2015-05-11 01:06:45.000000000 +0200
++++ libc-0.1.2/src/socket/Makefile	2015-05-23 16:07:26.000000000 +0200
+@@ -1,5 +1,5 @@
+ SUBDIRS	= kernel/freebsd kernel/linux kernel/netbsd
+-TARGETS	= $(OBJDIR)libsocket.a $(OBJDIR)libsocket.so.0.0 $(OBJDIR)libsocket.so.0 $(OBJDIR)libsocket.so
++TARGETS	= $(OBJDIR)libsocket.la
+ OBJDIR	=
+ PREFIX	= /usr/local
+ DESTDIR	=
+@@ -15,6 +15,7 @@
+ AR	= ar
+ RANLIB	= ranlib
+ CCSHARED= $(CC) -shared
++LIBTOOL	= libtool
+ RM	= rm -f
+ LN	= ln -f
+ MKDIR	= mkdir -m 0755 -p
+@@ -30,33 +31,27 @@
+ 		$(MAKE) OBJDIR="$(OBJDIR)$$i/"; \
+ 		else $(MAKE); fi) || exit; done
+ 
+-libsocket_OBJS = $(OBJDIR)arpa/inet.o $(OBJDIR)netdb.o $(OBJDIR)sys/socket.o $(OBJDIR)syscalls.o
++libsocket_OBJS = $(OBJDIR)arpa/inet.lo $(OBJDIR)netdb.lo $(OBJDIR)sys/socket.lo $(OBJDIR)syscalls.lo
+ libsocket_CFLAGS = $(CPPFLAGSF) $(CPPFLAGS) $(CFLAGSF) $(CFLAGS)
+ libsocket_LDFLAGS = $(LDFLAGSF) $(LDFLAGS)
+ libsocket_ASFLAGS = $(CPPFLAGSF) $(CPPFLAGS) $(ASFLAGS)
+ 
+-$(OBJDIR)libsocket.a: $(libsocket_OBJS)
+-	$(AR) -rc $(OBJDIR)libsocket.a $(libsocket_OBJS)
+-	$(RANLIB) $(OBJDIR)libsocket.a
+-
+-$(OBJDIR)libsocket.so.0.0 $(OBJDIR)libsocket.so.0 $(OBJDIR)libsocket.so: $(libsocket_OBJS)
+-	$(CCSHARED) -o $(OBJDIR)libsocket.so.0.0 -Wl,-soname,libsocket.so.0 $(libsocket_OBJS) $(libsocket_LDFLAGS)
+-	$(LN) -s -- libsocket.so.0.0 $(OBJDIR)libsocket.so.0
+-	$(LN) -s -- libsocket.so.0.0 $(OBJDIR)libsocket.so
++$(OBJDIR)libsocket.la: $(libsocket_OBJS)
++	$(LIBTOOL) --mode=link $(CC) -o $(OBJDIR)libsocket.la $(libsocket_OBJS) -rpath $(LIBDIR) $(libsocket_LDFLAGS)
+ 
+-$(OBJDIR)arpa/inet.o: arpa/inet.c
++$(OBJDIR)arpa/inet.o arpa/inet.lo: arpa/inet.c
+ 	@[ -d "$(OBJDIR)arpa" ] || $(MKDIR) -- "$(OBJDIR)arpa"
+-	$(CC) $(libsocket_CFLAGS) -o $(OBJDIR)arpa/inet.o -c arpa/inet.c
++	$(LIBTOOL) --mode=compile $(CC) $(libsocket_CFLAGS) -o $(OBJDIR)arpa/inet.o -c arpa/inet.c
+ 
+-$(OBJDIR)netdb.o: netdb.c
+-	$(CC) $(libsocket_CFLAGS) -o $(OBJDIR)netdb.o -c netdb.c
++$(OBJDIR)netdb.o netdb.lo: netdb.c
++	$(LIBTOOL) --mode=compile $(CC) $(libsocket_CFLAGS) -o $(OBJDIR)netdb.o -c netdb.c
+ 
+-$(OBJDIR)sys/socket.o: sys/socket.c kernel/linux/common.h kernel/netbsd/common.h syscalls.h
++$(OBJDIR)sys/socket.o sys/socket.lo: sys/socket.c kernel/linux/common.h kernel/netbsd/common.h syscalls.h
+ 	@[ -d "$(OBJDIR)sys" ] || $(MKDIR) -- "$(OBJDIR)sys"
+-	$(CC) $(libsocket_CFLAGS) -o $(OBJDIR)sys/socket.o -c sys/socket.c
++	$(LIBTOOL) --mode=compile $(CC) $(libsocket_CFLAGS) -o $(OBJDIR)sys/socket.o -c sys/socket.c
+ 
+-$(OBJDIR)syscalls.o: syscalls.S kernel/freebsd/common.h kernel/freebsd/amd64/syscalls.S kernel/freebsd/i386/syscalls.S kernel/linux/common.h kernel/linux/amd64/syscalls.S kernel/linux/arm/syscalls.S kernel/linux/i386/syscalls.S kernel/netbsd/amd64/syscalls.S kernel/netbsd/arm/syscalls.S kernel/netbsd/i386/syscalls.S kernel/netbsd/common.h kernel/netbsd/sparc/syscalls.S
+-	$(AS) $(libsocket_ASFLAGS) -o $(OBJDIR)syscalls.o syscalls.S
++$(OBJDIR)syscalls.o syscalls.lo: syscalls.S kernel/freebsd/common.h kernel/freebsd/amd64/syscalls.S kernel/freebsd/i386/syscalls.S kernel/linux/common.h kernel/linux/amd64/syscalls.S kernel/linux/arm/syscalls.S kernel/linux/i386/syscalls.S kernel/netbsd/amd64/syscalls.S kernel/netbsd/arm/syscalls.S kernel/netbsd/i386/syscalls.S kernel/netbsd/common.h kernel/netbsd/sparc/syscalls.S
++	$(LIBTOOL) --mode=compile $(AS) $(libsocket_ASFLAGS) -o $(OBJDIR)syscalls.o syscalls.S
+ 
+ clean:
+ 	@for i in $(SUBDIRS); do (cd "$$i" && $(MAKE) clean) || exit; done
+@@ -70,16 +65,11 @@
+ install: $(TARGETS)
+ 	@for i in $(SUBDIRS); do (cd "$$i" && $(MAKE) install) || exit; done
+ 	$(MKDIR) $(DESTDIR)$(LIBDIR)
+-	$(INSTALL) -m 0644 $(OBJDIR)libsocket.a $(DESTDIR)$(LIBDIR)/libsocket.a
+-	$(INSTALL) -m 0755 $(OBJDIR)libsocket.so.0.0 $(DESTDIR)$(LIBDIR)/libsocket.so.0.0
+-	$(LN) -s -- libsocket.so.0.0 $(DESTDIR)$(LIBDIR)/libsocket.so.0
+-	$(LN) -s -- libsocket.so.0.0 $(DESTDIR)$(LIBDIR)/libsocket.so
++	$(LIBTOOL) --mode=install $(INSTALL) -m 0755 $(OBJDIR)libsocket.la $(DESTDIR)$(LIBDIR)/libsocket.la
++	$(LIBTOOL) --mode=finish $(DESTDIR)/$(LIBDIR)
+ 
+ uninstall:
+ 	@for i in $(SUBDIRS); do (cd "$$i" && $(MAKE) uninstall) || exit; done
+-	$(RM) -- $(DESTDIR)$(LIBDIR)/libsocket.a
+-	$(RM) -- $(DESTDIR)$(LIBDIR)/libsocket.so.0.0
+-	$(RM) -- $(DESTDIR)$(LIBDIR)/libsocket.so.0
+-	$(RM) -- $(DESTDIR)$(LIBDIR)/libsocket.so
++	$(LIBTOOL) --mode=uninstall $(RM) -- $(DESTDIR)$(LIBDIR)/libsocket.la
+ 
+ .PHONY: all subdirs clean distclean install uninstall
+diff -Naur libc-0.1.2.orig/src/socket/project.conf libc-0.1.2/src/socket/project.conf
+--- libc-0.1.2.orig/src/socket/project.conf	2015-04-19 17:08:24.000000000 +0200
++++ libc-0.1.2/src/socket/project.conf	2015-05-23 15:52:15.000000000 +0200
+@@ -9,7 +9,7 @@
+ dist=Makefile,syscalls.h
+ 
+ [libsocket]
+-type=library
++type=libtool
+ sources=arpa/inet.c,netdb.c,sys/socket.c,syscalls.S
+ install=$(LIBDIR)
+ 

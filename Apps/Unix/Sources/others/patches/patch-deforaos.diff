@@ -1,0 +1,34 @@
+diff -Naur others-0.0.1.orig/src/Makefile others-0.0.1/src/Makefile
+--- others-0.0.1.orig/src/Makefile	2011-02-27 01:23:20.000000000 +0100
++++ others-0.0.1/src/Makefile	2011-02-27 01:29:05.000000000 +0100
+@@ -31,7 +31,7 @@
+ 
+ host_OBJS = host.o
+ host_CFLAGS = $(CPPFLAGSF) $(CPPFLAGS) $(CFLAGSF) $(CFLAGS)
+-host_LDFLAGS = $(LDFLAGSF) $(LDFLAGS) 
++host_LDFLAGS = $(LDFLAGSF) $(LDFLAGS) -lsocket
+ 
+ host: $(host_OBJS)
+ 	$(CC) -o host $(host_OBJS) $(host_LDFLAGS)
+diff -Naur others-0.0.1.orig/tools/Makefile others-0.0.1/tools/Makefile
+--- others-0.0.1.orig/tools/Makefile	2011-02-27 01:23:20.000000000 +0100
++++ others-0.0.1/tools/Makefile	2011-02-27 01:29:05.000000000 +0100
+@@ -42,7 +42,10 @@
+ 	$(RM) -- $(TARGETS)
+ 
+ install: $(TARGETS)
++	$(MKDIR) $(DESTDIR)$(PREFIX)/bin
++	$(INSTALL) -m 0755 -- oinit $(DESTDIR)$(PREFIX)/bin/oinit
+ 
+ uninstall:
++	$(RM) -- $(DESTDIR)$(PREFIX)/bin/oinit
+ 
+ .PHONY: all clean distclean install uninstall
+diff -Naur others-0.0.1.orig/tools/project.conf others-0.0.1/tools/project.conf
+--- others-0.0.1.orig/tools/project.conf	2009-07-13 20:41:10.000000000 +0200
++++ others-0.0.1/tools/project.conf	2011-02-27 01:28:56.000000000 +0100
+@@ -10,3 +10,4 @@
+ [oinit]
+ type=binary
+ sources=oinit.c
++install=$(PREFIX)/bin

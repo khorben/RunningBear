@@ -1,0 +1,10 @@
+--- xynth-0.8.90.orig/demo/desktop/desktop.h	2007-09-25 10:38:06.000000000 +0200
++++ xynth-0.8.90/demo/desktop/desktop.h	2009-03-08 19:15:43.000000000 +0100
+@@ -24,7 +24,6 @@
+ #include <fcntl.h>
+ #include <time.h>
+ #include <unistd.h>
+-#include <sys/unistd.h>
+ #include "xynth_.h"
+ 
+ typedef enum {

@@ -1,0 +1,200 @@
+--- xynth-0.8.90.orig/src/server/video/fb/server.c	2007-09-25 10:38:45.000000000 +0200
++++ xynth-0.8.90/src/server/video/fb/server.c	2009-12-28 03:37:07.000000000 +0100
+@@ -29,12 +29,14 @@
+ 	s_video_helper_kbd_uninit,
+ };
+ 
++#if defined(VIDEO_HELPER_MOUSE)
+ s_video_input_t s_video_fb_input_mouse = {
+ 	VIDEO_INPUT_MOUSE,
+ 	s_video_helper_mouse_init,
+ 	s_video_helper_mouse_update,
+ 	s_video_helper_mouse_uninit,
+ };
++#endif
+ 
+ s_video_input_t s_video_fb_input_irr = {
+ 	VIDEO_INPUT_IRR,
+@@ -55,7 +57,9 @@
+ s_video_input_t *s_video_fb_input[] = {
+ 	&s_video_fb_input_irr,
+ 	&s_video_fb_input_keybd,
++#if defined(VIDEO_HELPER_MOUSE)
+ 	&s_video_fb_input_mouse,
++#endif
+ #if defined(VIDEO_HELPER_TSCREEN)
+ 	&s_video_fb_input_tscreen,
+ #endif
+@@ -115,16 +119,30 @@
+ 
+ void fb_server_surface_init (s_video_helper_mode_info_t *gmode)
+ {
++#ifdef __NetBSD__ /* XXX hardcoded */
++        server->window->surface->width = 640;
++        server->window->surface->height = 480;
++#else
+         server->window->surface->width = fb.v_scr.xres;
+         server->window->surface->height = fb.v_scr.yres;
++#endif
+         server->window->surface->bitsperpixel = fb.bitsperpixel;
+         server->window->surface->bytesperpixel = fb.bytesperpixel;
++#ifdef __NetBSD__ /* XXX hardcoded and probably wrong */
++	server->window->surface->blueoffset = 0;
++	server->window->surface->greenoffset = 0;
++	server->window->surface->redoffset = 0;
++	server->window->surface->bluelength = 0;
++	server->window->surface->greenlength = 0;
++	server->window->surface->redlength = 0;
++#else
+ 	server->window->surface->blueoffset = fb.v_scr.blue.offset;
+ 	server->window->surface->greenoffset = fb.v_scr.green.offset;
+ 	server->window->surface->redoffset = fb.v_scr.red.offset;
+ 	server->window->surface->bluelength = fb.v_scr.blue.length;
+ 	server->window->surface->greenlength = fb.v_scr.green.length;
+ 	server->window->surface->redlength = fb.v_scr.red.length;
++#endif
+ 	server->window->surface->colors = fb.colors;
+ 
+         switch (server->window->surface->colors) {
+@@ -177,7 +195,11 @@
+ 	}
+ 
+ 	server->window->surface->linear_mem_base = 0;
++#ifdef __NetBSD__ /* XXX hardcoded and probably wrong */
++	server->window->surface->linear_mem_size = 640 * 480;
++#else
+ 	server->window->surface->linear_mem_size = fb.f_scr.smem_len;
++#endif
+ 
+ 	if (server->window->surface->linear_mem_size){
+ 		server->window->surface->linear_mem_base = (unsigned int) mmap((caddr_t) 0, server->window->surface->linear_mem_size,
+@@ -231,6 +253,9 @@
+ 
+ void fb_server_setmode (s_server_conf_t *cfg, s_video_helper_mode_info_t *gmode)
+ {
++#ifdef __NetBSD__
++	fb.v_scr.bits_per_pixel = gmode->bytesperpixel * 8;
++#else
+ 	fb.v_scr.xres = gmode->xdim;
+ 	fb.v_scr.yres = gmode->ydim;
+ 	fb.v_scr.xres_virtual = gmode->xdim;
+@@ -240,38 +265,46 @@
+ 	fb.v_scr.bits_per_pixel = gmode->bytesperpixel * 8;
+ 	fb.v_scr.grayscale = 0;
+ 	fb.v_scr.nonstd = 0;
++#endif
+ 
+ 	switch (gmode->colors) {
+ 		default:
+ 		case 256:
+ 			fb.bitsperpixel = 8;
++#ifndef __NetBSD__ /* XXX */
+ 			fb.v_scr.blue.offset = 0;
+ 			fb.v_scr.green.offset = 3;
+ 			fb.v_scr.red.offset = 6;
+ 			fb.v_scr.blue.length = 3;
+ 			fb.v_scr.green.length = 3;
+ 			fb.v_scr.red.length = 2;
++#endif
+ 			break;
+ 		case 32768:
+ 			fb.bitsperpixel = 15;
++#ifndef __NetBSD__ /* XXX */
+ 			fb.v_scr.blue.offset = 0;
+ 			fb.v_scr.green.offset = 5;
+ 			fb.v_scr.red.offset = 10;
+ 			fb.v_scr.blue.length = 5;
+ 			fb.v_scr.green.length = 5;
+ 			fb.v_scr.red.length = 5;
++#endif
+ 			break;
+ 		case 65536:
+ 			fb.bitsperpixel = 16;
++#ifndef __NetBSD__ /* XXX */
+ 			fb.v_scr.blue.offset = 0;
+ 			fb.v_scr.green.offset = 5;
+ 			fb.v_scr.red.offset = 11;
+ 			fb.v_scr.blue.length = 5;
+ 			fb.v_scr.green.length = 6;
+ 			fb.v_scr.red.length = 5;
++#endif
+ 			break;
+ 		case  (1 << 18):
+ 			fb.bitsperpixel = 18;
++#ifndef __NetBSD__ /* XXX */
+ 			fb.v_scr.bits_per_pixel = 18;
+ 			fb.v_scr.blue.offset = 0;
+ 			fb.v_scr.green.offset = 6;
+@@ -279,23 +312,28 @@
+ 			fb.v_scr.blue.length = 6;
+ 			fb.v_scr.green.length = 6;
+ 			fb.v_scr.red.length = 6;
++#endif
+ 			break;
+ 		case 256 * 65536:
+ 			fb.bitsperpixel = 24;
++#ifndef __NetBSD__ /* XXX */
+ 			fb.v_scr.blue.offset = 0;
+ 			fb.v_scr.green.offset = 8;
+ 			fb.v_scr.red.offset = 16;
+ 			fb.v_scr.blue.length = 8;
+ 			fb.v_scr.green.length = 8;
+ 			fb.v_scr.red.length = 8;
++#endif
+ 			break;
+ 	}
+ 	fb.bytesperpixel = gmode->bytesperpixel;
+ 	fb.colors = gmode->colors;
+ 
++#ifndef __NetBSD__ /* XXX */
+ 	fb.v_scr.red.msb_right = 0;
+ 	fb.v_scr.green.msb_right = 0;
+ 	fb.v_scr.blue.msb_right = 0;
++#endif
+ 
+ 	fb_timing_set(cfg, &(fb.v_scr));
+ 
+@@ -308,12 +346,17 @@
+ 	fb_putvar();
+ 
+ 	switch (fb.f_scr.type) {
++#ifdef FB_TYPE_PACKED_PIXELS
+ 		case FB_TYPE_PACKED_PIXELS:
+ 			break;
++#endif
+ 		default :
+ 			debugf(DSER | DSYS | DFAT, "FBDEV : Unsupported type(%d) requested", fb.f_scr.type);
+ 	}
+ 
++#ifdef __NetBSD__ /* XXX */
++	/* debugf(DSER | DSYS | DFAT, "FBDEV : Unsupported visual(%d) requested", fb.f_scr.visual); */
++#else
+ 	switch (fb.f_scr.visual) {
+ 		case FB_VISUAL_TRUECOLOR:
+ 		case FB_VISUAL_DIRECTCOLOR:
+@@ -323,6 +366,7 @@
+ 		default :
+ 			debugf(DSER | DSYS | DFAT, "FBDEV : Unsupported visual(%d) requested", fb.f_scr.visual);
+ 	}
++#endif
+ }
+ 
+ #endif /* VIDEO_FBDev */
+--- xynth-0.8.90.orig/src/server/video/fb/timing.c	2007-09-25 10:38:45.000000000 +0200
++++ xynth-0.8.90/src/server/video/fb/timing.c	2009-12-28 03:38:44.000000000 +0100
+@@ -286,6 +286,7 @@
+ 
+ void fb_timing_set (s_server_conf_t *cfg, struct fb_var_screeninfo *v_scr)
+ {
++#ifndef __NetBSD__ /* XXX */
+ 	gtf_timings t;
+ 	int interlace = 0;
+ 	double freq = 150;
+@@ -330,6 +331,7 @@
+ 			}
+ 		}
+ 	}
++#endif
+ }
+ 
+ #if defined(TESTING_gtf)

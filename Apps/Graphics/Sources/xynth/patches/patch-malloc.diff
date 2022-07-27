@@ -1,0 +1,12 @@
+--- xynth-0.8.90.orig/src/lib/xynth.h	2007-09-25 10:38:40.000000000 +0200
++++ xynth-0.8.90/src/lib/xynth.h	2009-02-19 18:48:39.000000000 +0100
+@@ -475,7 +475,9 @@
+ } s_single_app_t;
+ 
+ /* alloc.c */
++#if 0
+ void * s_malloc (unsigned int size);
++#endif
+ void * s_calloc (unsigned int nmemb, unsigned int size);
+ void * s_realloc (void *ptr, unsigned int size);
+ void s_free (void *ptr);

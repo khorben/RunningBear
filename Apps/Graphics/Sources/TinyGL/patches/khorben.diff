@@ -1,0 +1,112 @@
+diff -Naur TinyGL-0.4/Makefile TinyGL-0.4.khorben/Makefile
+--- TinyGL-0.4/Makefile	2001-01-07 22:32:56.000000000 +0100
++++ TinyGL-0.4.khorben/Makefile	2010-09-14 19:15:48.000000000 +0200
+@@ -1,14 +1,14 @@
+ include config.mk
+ 
+ all:
+-	( for f in $(DIRS); do ( cd $$f ; make all ) || exit 1 ; done )
++	( for f in $(DIRS); do ( cd $$f ; $(MAKE) all ) || exit 1 ; done )
+ 
+ clean:
+ 	rm -f *~ lib/libTinyGL.a include/GL/*~ TAGS
+-	( for f in $(DIRS); do ( cd $$f ; make clean ; ) done )
++	( for f in $(DIRS); do ( cd $$f ; $(MAKE) clean ; ) done )
+ 
+ install:
+-	( for f in $(DIRS); do ( cd $$f ; make install ; ) done )
++	( for f in $(DIRS); do ( cd $$f ; $(MAKE) install ; ) done )
+ 
+ 
+ tar:
+diff -Naur TinyGL-0.4/config.mk TinyGL-0.4.khorben/config.mk
+--- TinyGL-0.4/config.mk	2002-03-17 13:11:39.000000000 +0100
++++ TinyGL-0.4.khorben/config.mk	2010-09-14 19:48:56.000000000 +0200
+@@ -3,7 +3,7 @@
+ 
+ # linux
+ CC= gcc
+-CFLAGS= -g -Wall -O2
++CFLAGS= -W -Wall -g -O2 `pkg-config --cflags glproto`
+ LFLAGS=
+ 
+ # for BeOS PPC
+@@ -31,8 +31,8 @@
+ 
+ ifdef TINYGL_USE_GLX
+ # Linux
+-UI_LIBS= -L/usr/X11R6/lib -lX11 -lXext
+-UI_INCLUDES= 
++UI_LIBS= `pkg-config --libs xext`
++UI_INCLUDES= `pkg-config --cflags xext`
+ # Solaris
+ #UI_LIBS= -L/usr/X11/lib -lX11 -lXext -lsocket -lnsl
+ #UI_INCLUDES= 
+diff -Naur TinyGL-0.4/examples/spin.c TinyGL-0.4.khorben/examples/spin.c
+--- TinyGL-0.4/examples/spin.c	2000-10-17 01:29:23.000000000 +0200
++++ TinyGL-0.4.khorben/examples/spin.c	2010-09-14 19:41:21.000000000 +0200
+@@ -9,6 +9,7 @@
+ 
+ 
+ #include <math.h>
++#include <stdlib.h>
+ #include <stdio.h>
+ 
+ #include <GL/glx.h> 
+diff -Naur TinyGL-0.4/src/Makefile TinyGL-0.4.khorben/src/Makefile
+--- TinyGL-0.4/src/Makefile	2001-01-07 20:11:10.000000000 +0100
++++ TinyGL-0.4.khorben/src/Makefile	2010-09-14 19:42:18.000000000 +0200
+@@ -26,7 +26,7 @@
+ 	rm -f *~ *.o *.a
+ 
+ .c.o:
+-	$(CC) $(CFLAGS) $(INCLUDES) -c $*.c
++	$(CC) $(INCLUDES) $(CFLAGS) -c $*.c
+ 
+ clip.o: zgl.h zfeatures.h
+ vertex.o: zgl.h zfeatures.h
+@@ -40,4 +40,4 @@
+ zline.o: zgl.h zfeatures.h zline.h
+ 
+ ztriangle.o: ztriangle.c ztriangle.h zgl.h zfeatures.h
+-	$(CC) $(CFLAGS) -Wno-uninitialized $(INCLUDES) -c $*.c
++	$(CC) $(INCLUDES) $(CFLAGS) -Wno-uninitialized -c $*.c
+diff -Naur TinyGL-0.4/src/vertex.c TinyGL-0.4.khorben/src/vertex.c
+--- TinyGL-0.4/src/vertex.c	2001-01-07 19:21:40.000000000 +0100
++++ TinyGL-0.4.khorben/src/vertex.c	2010-09-14 19:43:41.000000000 +0200
+@@ -1,3 +1,4 @@
++#include <string.h>
+ #include "zgl.h"
+ 
+ void glopNormal(GLContext * c, GLParam * p)
+diff -Naur TinyGL-0.4/src/zbuffer.c TinyGL-0.4.khorben/src/zbuffer.c
+--- TinyGL-0.4/src/zbuffer.c	2001-01-07 22:19:55.000000000 +0100
++++ TinyGL-0.4.khorben/src/zbuffer.c	2010-09-14 19:37:54.000000000 +0200
+@@ -245,6 +245,7 @@
+     unsigned short *q;
+     unsigned int *p, *p1, w0, w1, w2, v0, v1;
+     int y, n;
++    char *r;
+ 
+     q = zb->pbuf;
+     p1 = (unsigned int *) buf;
+@@ -265,7 +266,9 @@
+ 	    p += 3;
+ 	} while (--n > 0);
+ 
+-	(char *) p1 += linesize;
++	r = p1;
++	r += linesize;
++	p1 = r;
+     }
+ }
+ 
+diff -Naur TinyGL-0.4/src/zmath.h TinyGL-0.4.khorben/src/zmath.h
+--- TinyGL-0.4/src/zmath.h	2000-10-15 14:46:40.000000000 +0200
++++ TinyGL-0.4.khorben/src/zmath.h	2010-09-14 19:42:47.000000000 +0200
+@@ -50,4 +50,4 @@
+ 
+ int gl_Matrix_Inv(float *r,float *m,int n);
+ 
+-#endif  __ZMATH__
++#endif /* __ZMATH__ */

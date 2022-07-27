@@ -1,0 +1,14 @@
+--- glib-2.18.1.orig/ltmain.sh	2008-08-30 00:27:25.000000000 +0200
++++ glib-2.18.1/ltmain.sh	2009-05-01 19:34:33.000000000 +0200
+@@ -2781,9 +2781,11 @@
+ 	    fi
+ 	    if test "$linkmode" = prog; then
+ 	      test -n "$add_dir" && compile_deplibs="$add_dir $compile_deplibs"
++	      test -f "$inst_prefix_dir$add" && add="$inst_prefix_dir$add"
+ 	      test -n "$add" && compile_deplibs="$add $compile_deplibs"
+ 	    else
+ 	      test -n "$add_dir" && deplibs="$add_dir $deplibs"
++	      test -f "$inst_prefix_dir$add" && add="$inst_prefix_dir$add"
+ 	      test -n "$add" && deplibs="$add $deplibs"
+ 	      if test "$hardcode_direct" != yes && \
+ 		 test "$hardcode_minus_L" != yes && \

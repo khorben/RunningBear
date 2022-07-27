@@ -1,0 +1,157 @@
+#$Id: NetBSD,v 1.10 2009/05/01 20:52:19 khorben Exp $
+#Copyright (c) 2009 Pierre Pronchery <khorben@defora.org>
+
+
+
+#variables
+[ -z "$BOOT" ]		&& BOOT="/usr/mdec/boot"
+[ -z "$FDISK" ]		&& FDISK="fdisk"
+[ -z "$INSTALLBOOT" ]	&& INSTALLBOOT="installboot"
+[ -z "$LDSO" ]		&& LDSO="/libexec/ld.elf_so"
+[ -z "$MBRLABEL" ]	&& MBRLABEL="mbrlabel"
+[ -z "$MKFS" ]		&& MKFS="newfs"
+[ -z "$MKISOFS" ]	&& MKISOFS="makefs -t cd9660"
+[ -z "$MOUNT" ]		&& MOUNT="mount"
+[ -z "$UMOUNT" ]	&& UMOUNT="umount"
+[ -z "$VNCONFIG" ]	&& VNCONFIG="vnconfig"
+[ -z "$VND" ]		&& VND="vnd0"
+
+
+#functions
+#private
+#image_image
+_image_image()
+{
+	USAGE="Options for $IMAGE_TYPE on $TARGET:
+  BOOT		Path to the bootloader
+  IMAGE_FILE	Where to write the filesystem image
+  IMAGE_KERNEL	Path to the kernel
+  IMAGE_SIZE	Size of the filesystem image in kilobytes
+  IMAGE_TYPE	The type of image to generate
+  LDSO		Path to the dynamic loader
+  MKFS		Command used to format the filesystem"
+
+	#sanity check
+	check "$USAGE" CHOWN DD DESTDIR DEVZERO FDISK IMAGE_FILE IMAGE_KERNEL \
+		IMAGE_SIZE INSTALL INSTALLBOOT LDSO LN MBRLABEL MKDIR MKFS \
+		MKNOD MOUNT MV UMOUNT VNCONFIG VND
+
+	$MKDIR "$DESTDIR"					|| exit 2
+	$SUDO $UMOUNT "$DESTDIR"
+	$SUDO $VNCONFIG -u "$VND"
+	$DD if="$DEVZERO" of="$IMAGE_FILE" count="$IMAGE_SIZE" &&
+	$FDISK -Ffi "$IMAGE_FILE"				|| exit 2
+	SIZE=$((IMAGE_SIZE * 2 - 63))
+	$FDISK -Ffu0s "169/63/$SIZE" "$IMAGE_FILE"		|| exit 2
+	$FDISK -Ffa0 "$IMAGE_FILE"				|| exit 2
+	$SUDO $VNCONFIG -c "$VND" "$IMAGE_FILE"			|| exit 2
+	$SUDO $MBRLABEL -frw "$VND"				&&
+	$SUDO $MKFS "${VND}e"					&&
+	$SUDO $MOUNT "/dev/${VND}e" "$DESTDIR"			&&
+	$SUDO $MKDIR "$DESTDIR$PREFIX"				&&
+	$SUDO $CHOWN "$UID:$GID" "$DESTDIR$PREFIX"		&&
+	target "install"					&&
+	$SUDO $CHOWN -R "0:0" "$DESTDIR$PREFIX"			&&
+	$SUDO $MKDIR "$DESTDIR/bin"				&&
+	$SUDO $MV "$DESTDIR$PREFIX/bin/sh" "$DESTDIR/bin/sh"	&&
+	$SUDO $MKDIR "$DESTDIR/proc"				&&
+	$SUDO $MKDIR "$DESTDIR/sbin"				&&
+	$SUDO $MV "$DESTDIR$PREFIX/bin/oinit" "$DESTDIR/sbin/init" \
+								&&
+	$SUDO $MKDIR "$DESTDIR/dev"				&&
+	$SUDO $MKNOD -m 600 "$DESTDIR/dev/console" c 0 0	&&
+	$SUDO $MKNOD -m 600 "$DESTDIR/dev/tty" c 1 0		&&
+	$SUDO $MKNOD -m 600 "$DESTDIR/dev/null" c 2 2		&&
+	$SUDO $MKNOD -m 600 "$DESTDIR/dev/fb0" c 47 0		&&
+	$SUDO $MKNOD -m 600 "$DESTDIR/dev/hd0a" b 0 0		&&
+	$SUDO $MKNOD -m 600 "$DESTDIR/dev/hd0b" b 0 1		&&
+	$SUDO $MKNOD -m 600 "$DESTDIR/dev/hd0c" b 0 2		&&
+	$SUDO $MKNOD -m 600 "$DESTDIR/dev/hd0d" b 0 3		&&
+	$SUDO $MKNOD -m 600 "$DESTDIR/dev/hd0e" b 0 4		&&
+	$SUDO $MKNOD -m 600 "$DESTDIR/dev/hd0f" b 0 5		&&
+	$SUDO $MKNOD -m 600 "$DESTDIR/dev/hd0g" b 0 6		&&
+	$SUDO $MKNOD -m 600 "$DESTDIR/dev/hd0h" b 0 7		&&
+	$SUDO $MKNOD -m 600 "$DESTDIR/dev/rhd0a" c 3 0		&&
+	$SUDO $MKNOD -m 600 "$DESTDIR/dev/rhd0b" c 3 1		&&
+	$SUDO $MKNOD -m 600 "$DESTDIR/dev/rhd0c" c 3 2		&&
+	$SUDO $MKNOD -m 600 "$DESTDIR/dev/rhd0d" c 3 3		&&
+	$SUDO $MKNOD -m 600 "$DESTDIR/dev/rhd0e" c 3 4		&&
+	$SUDO $MKNOD -m 600 "$DESTDIR/dev/rhd0f" c 3 5		&&
+	$SUDO $MKNOD -m 600 "$DESTDIR/dev/rhd0g" c 3 6		&&
+	$SUDO $MKNOD -m 600 "$DESTDIR/dev/rhd0h" c 3 7		&&
+	$SUDO $MKNOD -m 600 "$DESTDIR/dev/tty0" c 47 0		&&
+	$SUDO $MKNOD -m 600 "$DESTDIR/dev/tty1" c 47 1		&&
+	$SUDO $MKNOD -m 600 "$DESTDIR/dev/tty2" c 47 2		&&
+	$SUDO $MKNOD -m 600 "$DESTDIR/dev/tty3" c 47 3		&&
+	$SUDO $MKNOD -m 600 "$DESTDIR/dev/tty4" c 47 4		&&
+	$SUDO $MKNOD -m 600 "$DESTDIR/dev/tty5" c 47 5		&&
+	$SUDO $MKDIR "$DESTDIR/libexec" "$DESTDIR/usr/libexec"	&&
+	$SUDO $INSTALL -m 555 "$LDSO" \
+			"$DESTDIR/libexec/ld.elf_so"		&&
+	$SUDO $LN -s "/libexec/ld.elf_so" "$DESTDIR/usr/libexec"&&
+	$SUDO $MKDIR "$DESTDIR/tmp"				&&
+	$SUDO $CHMOD "1777" "$DESTDIR/tmp"			&&
+	$SUDO $MKDIR "$DESTDIR/usr/local/share/xynth/configs"	&&
+	$SUDO sh -c "cat > $DESTDIR/usr/local/share/xynth/configs/xynth.conf" \
+			<< EOF
+[general]
+driver = fbdev
+mode=640x480x64K
+rotate=0
+
+[keyboard]
+keyboard = console
+
+[mouse]
+type = MOUSE_NONE
+
+[infrared]
+type = IRR_NONE
+
+[monitor]
+EOF
+	$SUDO $INSTALL -m 644 "$BOOT" "$DESTDIR/boot"		&&
+	$SUDO sh -c "echo 'menu=Boot RunningBear:vesa 640x480x16;boot netbsd' \
+			> $DESTDIR/boot.cfg"			&&
+	$SUDO sh -c "echo 'menu=Boot RunningBear (text mode):boot netbsd' \
+			>> $DESTDIR/boot.cfg"			&&
+	$SUDO $INSTALL -m 755 "$IMAGE_KERNEL" "$DESTDIR/netbsd"	&&
+	$SUDO $INSTALLBOOT -m "$ARCH" -o "console=com0" "/dev/r${VND}e" \
+			"/usr/mdec/bootxx_ffsv1"
+	RET=$?
+	$SUDO $UMOUNT "$DESTDIR"
+	$SUDO $VNCONFIG -u "$VND"
+	return $RET
+}
+
+
+#image_iso
+_image_iso()
+{
+	USAGE="Options for $IMAGE_TYPE on $TARGET:
+  BOOT		Path to the bootloader
+  IMAGE_FILE	Where to write the filesystem image
+  IMAGE_KERNEL	Path to the kernel
+  IMAGE_TYPE	The type of image to generate
+  LDSO		Path to the dynamic loader
+  MKISOFS	Command used to format the filesystem"
+	MKISOFS_ARGS="-o bootimage=i386;bootxx,no-emul-boot,rockridge"
+
+	#sanity check
+	check "$USAGE" IMAGE_FILE IMAGE_KERNEL MKISOFS
+	target "install"					|| exit 2
+	$MKDIR "$DESTDIR/dev"					|| exit 2
+	$SUDO $MKNOD -m 600 "$DESTDIR/dev/console" c 0 0	|| exit 2
+	$MKDIR "$DESTDIR/libexec" "$DESTDIR/usr/libexec"	|| exit 2
+	$INSTALL -m 555 "$LDSO" "$DESTDIR/libexec/ld.elf_so"	|| exit 2
+	$LN -s "/libexec/ld.elf_so" "$DESTDIR/usr/libexec"	|| exit 2
+	$MKDIR "$DESTDIR/proc"					|| exit 2
+	$MKDIR "$DESTDIR/sbin"					|| exit 2
+	$SUDO $MV "$DESTDIR$PREFIX/bin/oinit" "$DESTDIR/sbin/init" \
+								|| exit 2
+	$INSTALL -m 755 "$IMAGE_KERNEL" "$DESTDIR/netbsd"	|| exit 2
+	$INSTALL -m 644 "$BOOT" "$DESTDIR/boot"			|| exit 2
+	$INSTALL -m 644 "/usr/mdec/bootxx_cd9660" "bootxx"	|| exit 2
+	$INSTALLBOOT -m "$ARCH" -o "console=pc" -e bootxx	|| exit 2
+	$MKISOFS $MKISOFS_ARGS "$IMAGE_FILE" "$DESTDIR"		|| exit 2
+}

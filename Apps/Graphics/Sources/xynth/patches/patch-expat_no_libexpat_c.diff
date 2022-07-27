@@ -1,0 +1,7 @@
+--- xynth-0.8.90.orig/src/lib/expat/libexpat.c	1969-12-31 18:00:00.000000000 -0600
++++ xynth-0.8.90/src/lib/expat/libexpat.c	2012-03-15 02:37:43.000000000 -0600
+@@ -0,0 +1,4 @@
++#include "expat_config.h"
++#include "xmlparse.c"
++#include "xmlrole.c"
++#include "xmltok.c"

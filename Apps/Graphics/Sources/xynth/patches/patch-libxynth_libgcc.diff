@@ -1,0 +1,11 @@
+--- xynth-0.8.90.orig/src/lib/Makefile	2007-09-25 10:38:40.000000000 +0200
++++ xynth-0.8.90/src/lib/Makefile	2009-03-29 04:53:51.000000000 +0200
+@@ -36,7 +36,7 @@
+ 
+ TARGET_A-$(PLATFORM_LINUX)  = libxynth.a
+ TARGET_SO-$(PLATFORM_LINUX) = libxynth.so
+-LDFLAGS-$(PLATFORM_LINUX)  += -lpthread -lm
++LDFLAGS-$(PLATFORM_LINUX)  += -lpthread -lm `$(CC) -print-libgcc-file-name`
+ 
+ TARGET_A-$(PLATFORM_PSPDEV)  = libxynth.a
+ 

@@ -1,0 +1,12 @@
+--- glib-2.18.1.orig/glib/gmain.c	2008-09-18 00:33:57.000000000 +0200
++++ glib-2.18.1/glib/gmain.c	2009-05-01 19:14:53.000000000 +0200
+@@ -65,6 +65,9 @@
+ #if defined(_POLL_EMUL_H_) || defined(BROKEN_POLL)
+ #undef HAVE_POLL
+ #endif
++
++#elif defined(HAVE_POLL)
++# include <poll.h>
+    
+ #endif /* GLIB_HAVE_SYS_POLL_H */
+ #ifdef HAVE_UNISTD_H

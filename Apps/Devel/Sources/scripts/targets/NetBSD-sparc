@@ -1,0 +1,15 @@
+#$Id: NetBSD-sparc,v 1.4 2009-02-19 15:39:54 khorben Exp $
+
+
+
+#includes
+. "`dirname $0`/Apps/Devel/Sources/scripts/targets/NetBSD"
+
+
+#functions
+#public
+#target_image
+target_image()
+{
+	_image_image
+}

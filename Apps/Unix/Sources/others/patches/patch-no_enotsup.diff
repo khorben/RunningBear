@@ -1,0 +1,12 @@
+diff -Naur others-0.0.2.orig/src/mount.c others-0.0.2/src/mount.c
+--- others-0.0.2.orig/src/mount.c	2011-03-07 00:16:36.000000000 +0100
++++ others-0.0.2/src/mount.c	2011-03-07 02:08:39.000000000 +0100
+@@ -457,7 +457,7 @@
+ 			return _mount_supported[i].callback(
+ 					_mount_supported[i].type, flags,
+ 					special, node);
+-	errno = ENOTSUP;
++	errno = EINVAL; /* XXX ENOTSUP is not provided by libc 0.0.6 */
+ 	return -_mount_error(prefs->type, 1);
+ }
+ 

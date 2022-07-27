@@ -1,0 +1,13 @@
+--- xynth-0.8.90.orig/src/lib/xynth_.h	2007-10-22 10:47:54.000000000 +0200
++++ xynth-0.8.90/src/lib/xynth_.h	2009-03-08 19:25:21.000000000 +0100
+@@ -58,7 +58,9 @@
+ #define MIN(a, b)	((a) < (b) ? (a) : (b))
+ #define MAX(a, b)	((a) > (b) ? (a) : (b))
+ 
+-#if defined(DEBUG)
++#if 1
++	#define debugf(a, b...)
++#elif defined(DEBUG)
+ 	#define debugf(a, b...)	s_debug_debugf(a, __FILE__, __LINE__, (char *) __FUNCTION__, b);
+ #else
+ 	#define debugf(a, b...) {\

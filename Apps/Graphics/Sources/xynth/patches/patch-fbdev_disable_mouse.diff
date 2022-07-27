@@ -1,0 +1,11 @@
+--- xynth-0.8.90.orig/Makefile.parse	2007-09-25 10:39:10.000000000 +0200
++++ xynth-0.8.90/Makefile.parse	2009-03-08 18:52:57.000000000 +0100
+@@ -73,7 +73,7 @@
+ 	VIDEO_HELPER_CONSOLE = Y
+ 	VIDEO_HELPER_KBD     = Y
+ 	VIDEO_HELPER_MODES   = Y
+-	VIDEO_HELPER_MOUSE   = Y
++	VIDEO_HELPER_MOUSE   = N
+ 	CFLAGS += -DVIDEO_FBDev
+ endif
+ ifeq ($(VIDEO_VESA), Y)

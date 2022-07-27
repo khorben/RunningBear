@@ -1,0 +1,11 @@
+--- xynth-0.8.90.orig/src/lib/surface.c	2008-11-02 02:59:31.000000000 +0100
++++ xynth-0.8.90/src/lib/surface.c	2008-11-02 02:59:41.000000000 +0100
+@@ -94,7 +94,7 @@
+ 			debugf(DCLI | DSYS | DFAT, "[%d] open(%s, O_RDWR) failed", window->surface->device);
+ 		}
+ 		if (window->surface->linear_mem_size){
+-			addr = (void *) mmap((caddr_t) 0, window->surface->linear_mem_size,
++			addr = (void *) mmap(0, window->surface->linear_mem_size,
+ 			                                  PROT_WRITE | PROT_READ,
+ 						          MAP_SHARED,
+ 						          fd,

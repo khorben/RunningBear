@@ -1,0 +1,25 @@
+#$Id: Linux,v 1.4 2008/11/10 13:50:41 khorben Exp $
+
+
+
+#variables
+#essential
+[ -z "$SUDO" ]	&& SUDO="sudo"
+
+#others
+[ -z "$DD" ]	&& DD="dd bs=1024"
+[ -z "$DEVZERO" ]&& DEVZERO="/dev/zero"
+[ -z "$DU" ]	&& DU="du -h"
+[ -z "$GZIP" ]	&& GZIP="gzip -9"
+[ -z "$KERNEL" ]&& KERNEL="/boot/vmlinuz"
+[ -z "$LN" ]	&& LN="ln"
+[ -z "$MKFS" ]	&& MKFS="/sbin/mke2fs -F"
+[ -z "$MKISOFS" ]&& MKISOFS="mkisofs -J -V \"$VENDOR\""
+[ -z "$MOUNT" ]	&& MOUNT="$SUDO mount -o loop"
+[ -z "$MV" ]	&& MV="mv -f"
+[ -z "$RAMDISK" ]&& RAMDISK="/boot/initrd.img"
+[ -z "$RM" ]	&& RM="rm -f"
+[ -z "$STRIP" ]	&& STRIP="strip"
+[ -z "$TAR" ]	&& TAR="tar"
+[ -z "$TUNE2FS" ]&& TUNE2FS="tune2fs"
+[ -z "$UMOUNT" ]&& UMOUNT="$SUDO umount"

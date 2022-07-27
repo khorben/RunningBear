@@ -1,0 +1,12 @@
+--- getopt-2.5/Makefile.in.orig	2008-09-26 11:10:32.000000000 +0200
++++ getopt-2.5/Makefile.in	2008-09-26 11:11:06.000000000 +0200
+@@ -30,6 +30,9 @@
+ 
+ all:	$(LIBNAME)
+ 
++.c.o:
++	$(CC) $(CFLAGS) -o $@ -c $<
++
+ check:
+ 	@echo There is no validation suite for this package
+ clean:

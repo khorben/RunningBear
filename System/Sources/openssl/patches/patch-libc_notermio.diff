@@ -1,0 +1,13 @@
+--- openssl-0.9.8zf.orig/crypto/ui/ui_openssl.c	2015-03-19 14:46:46.000000000 +0100
++++ openssl-0.9.8zf/crypto/ui/ui_openssl.c	2015-05-23 17:02:22.000000000 +0200
+@@ -222,9 +222,8 @@
+ # define TTY_FLAGS              c_lflag
+ # define TTY_get(tty,data)      tcgetattr(tty,data)
+ # define TTY_set(tty,data)      tcsetattr(tty,TCSANOW,data)
+-#endif
+ 
+-#ifdef TERMIO
++#elif defined(TERMIO)
+ # include <termio.h>
+ # define TTY_STRUCT             struct termio
+ # define TTY_FLAGS              c_lflag

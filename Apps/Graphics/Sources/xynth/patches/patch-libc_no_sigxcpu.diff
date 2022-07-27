@@ -1,0 +1,22 @@
+--- xynth-0.8.90.orig/src/server/video/helper/console.c	2007-09-25 10:38:42.000000000 +0200
++++ xynth-0.8.90/src/server/video/helper/console.c	2009-03-08 18:51:52.000000000 +0100
+@@ -35,8 +35,6 @@
+ 	SIGHUP, SIGINT, SIGQUIT, SIGILL,
+ 	SIGTRAP, SIGIOT, SIGBUS, SIGFPE,
+ 	SIGSEGV, SIGPIPE, SIGALRM, SIGTERM,
+-	SIGXCPU, SIGXFSZ, SIGVTALRM,
+-	/* SIGPROF ,*/ SIGPWR
+ };
+ 
+ static struct {
+--- xynth-0.8.90.orig/src/server/video/helper/kbd.c	2007-09-25 10:38:42.000000000 +0200
++++ xynth-0.8.90/src/server/video/helper/kbd.c	2009-03-08 19:20:19.000000000 +0100
+@@ -34,8 +34,6 @@
+ 	SIGHUP, SIGINT, SIGQUIT, SIGILL,
+ 	SIGTRAP, SIGIOT, SIGBUS, SIGFPE,
+ 	SIGSEGV, SIGPIPE, SIGALRM, SIGTERM,
+-	SIGXCPU, SIGXFSZ, SIGVTALRM,
+-	/* SIGPROF ,*/ SIGPWR
+ };
+ 
+ static struct {

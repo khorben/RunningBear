@@ -1,0 +1,21 @@
+--- xynth-0.8.90.orig/src/configs/xynth.conf	2007-09-25 10:38:47.000000000 +0200
++++ xynth-0.8.90/src/configs/xynth.conf	2009-05-02 03:43:37.000000000 +0200
+@@ -12,7 +12,7 @@
+ ; pspdev
+ ; caca
+ ; null
+-driver = sdl
++driver = fbdev
+ 
+ ; Mode :
+ ; WidthxHeightxColors
+@@ -23,7 +23,8 @@
+ ; 1024x768x16M32	32 bit
+ ;mode = 320x240x64K
+ ;mode = 480x272x64K
+-mode = 640x480x64K
++mode = 640x480x256
++;mode = 640x480x64K
+ ;mode = 800x600x64K
+ ;mode = 1024x768x64K
+ ;mode = 640x480x16M32

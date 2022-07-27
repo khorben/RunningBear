@@ -1,0 +1,23 @@
+--- xynth-0.8.90.orig/src/widget/widgetr/widgetr.c	2007-09-25 10:38:08.000000000 +0200
++++ xynth-0.8.90/src/widget/widgetr/widgetr.c	2009-02-20 01:42:19.000000000 +0100
+@@ -63,19 +63,8 @@
+ 	unsigned int mask = 0;
+ 	unsigned int depth = 0;
+ 	s_hashtable_t *htable;
+-	int option_index = 0;
+-	struct option long_options[] = {
+-		{"depth", 1, 0, 'd'},
+-		{"mask", 1, 0, 'm'},
+-		{"file", 1, 0, 'f'},
+-		{"style", 1, 0, 's'},
+-		{"script", 1, 0, 'c'},
+-		{"engine", 1, 0, 'e'},
+-		{"help", 0, 0, 'h'},
+-		{0, 0, 0, 0},
+-	};
+ 
+-	while ((c = getopt_long(argc, argv, "e:c:s:f:d:m:h", long_options, &option_index)) != -1) {
++	while ((c = getopt(argc, argv, "e:c:s:f:d:m:h")) != -1) {
+ 		switch (c) {
+ 			case 'e':
+ 				vare = optarg;

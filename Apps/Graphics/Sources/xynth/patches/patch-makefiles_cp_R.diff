@@ -1,0 +1,283 @@
+diff -Naur xynth-0.8.90.orig/Makefile xynth-0.8.90/Makefile
+--- xynth-0.8.90.orig/Makefile	2007-09-25 10:39:10.000000000 +0200
++++ xynth-0.8.90/Makefile	2009-12-28 05:25:32.000000000 +0100
+@@ -31,12 +31,12 @@
+ install: dist
+ ifeq ($(PLATFORM_LINUX), Y)
+ 	mkdir -p $(INSTALLDIR)
+-	cp -af dist/* $(INSTALLDIR)
+-	ldconfig
++	cp -Rf dist/* $(INSTALLDIR)
++	@#ldconfig
+ else
+ ifeq ($(PLATFORM_MINGW), Y)
+ 	mkdir -p c:/xynth
+-	cp -af dist/* c:/xynth
++	cp -Rf dist/* c:/xynth
+ else
+ ifeq ($(PLATFORM_PSPDEV), Y)
+ 	rm -rf $(DISTINCDIR)
+@@ -44,11 +44,11 @@
+ 	rm -rf $(DISTCONFDIR)
+ 	rm -rf $(DISTTHEMEDIR)
+ 	mkdir -p dist/psp/game
+-	cp -af dist/bin/__SCE__xynth dist/psp/game
++	cp -Rf dist/bin/__SCE__xynth dist/psp/game
+ ifeq ($(PSP_FW_VERSION), 150)
+-	cp -af dist/bin/%__SCE__xynth dist/psp/game
++	cp -Rf dist/bin/%__SCE__xynth dist/psp/game
+ endif
+-	cp -af dist/share dist/psp/game/__SCE__xynth
++	cp -Rf dist/share dist/psp/game/__SCE__xynth
+ 	rm -rf dist/share
+ 	rm -rf dist/bin
+ else
+diff -Naur xynth-0.8.90.orig/demo/child/Makefile xynth-0.8.90/demo/child/Makefile
+--- xynth-0.8.90.orig/demo/child/Makefile	2007-09-25 10:38:00.000000000 +0200
++++ xynth-0.8.90/demo/child/Makefile	2009-12-28 05:24:53.000000000 +0100
+@@ -23,5 +23,5 @@
+ 
+ dist: all
+ ifneq ($(TARGET),)
+-	cp -a $(TARGET) ../../$(DISTBINDIR)
++	cp -R $(TARGET) ../../$(DISTBINDIR)
+ endif
+diff -Naur xynth-0.8.90.orig/demo/desktop/Makefile xynth-0.8.90/demo/desktop/Makefile
+--- xynth-0.8.90.orig/demo/desktop/Makefile	2007-09-25 10:38:06.000000000 +0200
++++ xynth-0.8.90/demo/desktop/Makefile	2009-12-28 05:24:53.000000000 +0100
+@@ -27,7 +27,7 @@
+ 
+ dist: all
+ ifneq ($(TARGET),)
+-	cp -a $(TARGET) ../../$(DISTBINDIR)
++	cp -R $(TARGET) ../../$(DISTBINDIR)
+ endif
+ 	mkdir -p ../../$(DISTTOPDIR)/$(SHAREDIR)/desktop
+ 	mkdir -p ../../$(DISTTOPDIR)/$(SHAREDIR)/desktop/cfg/
+diff -Naur xynth-0.8.90.orig/demo/hide/Makefile xynth-0.8.90/demo/hide/Makefile
+--- xynth-0.8.90.orig/demo/hide/Makefile	2007-09-25 10:38:06.000000000 +0200
++++ xynth-0.8.90/demo/hide/Makefile	2009-12-28 05:24:53.000000000 +0100
+@@ -23,5 +23,5 @@
+ 
+ dist: all
+ ifneq ($(TARGET),)
+-	cp -a $(TARGET) ../../$(DISTBINDIR)
++	cp -R $(TARGET) ../../$(DISTBINDIR)
+ endif
+diff -Naur xynth-0.8.90.orig/demo/img/Makefile xynth-0.8.90/demo/img/Makefile
+--- xynth-0.8.90.orig/demo/img/Makefile	2007-09-25 10:38:07.000000000 +0200
++++ xynth-0.8.90/demo/img/Makefile	2009-12-28 05:24:53.000000000 +0100
+@@ -23,5 +23,5 @@
+ 
+ dist: all
+ ifneq ($(TARGET),)
+-	cp -a $(TARGET) ../../$(DISTBINDIR)
++	cp -R $(TARGET) ../../$(DISTBINDIR)
+ endif
+diff -Naur xynth-0.8.90.orig/demo/load/Makefile xynth-0.8.90/demo/load/Makefile
+--- xynth-0.8.90.orig/demo/load/Makefile	2007-09-25 10:38:00.000000000 +0200
++++ xynth-0.8.90/demo/load/Makefile	2009-12-28 05:24:53.000000000 +0100
+@@ -23,5 +23,5 @@
+ 
+ dist: all
+ ifneq ($(TARGET),)
+-	cp -a $(TARGET) ../../$(DISTBINDIR)
++	cp -R $(TARGET) ../../$(DISTBINDIR)
+ endif
+diff -Naur xynth-0.8.90.orig/demo/mines/Makefile xynth-0.8.90/demo/mines/Makefile
+--- xynth-0.8.90.orig/demo/mines/Makefile	2007-09-25 10:38:07.000000000 +0200
++++ xynth-0.8.90/demo/mines/Makefile	2009-12-28 05:24:53.000000000 +0100
+@@ -24,5 +24,5 @@
+ 
+ dist: all
+ ifneq ($(TARGET),)
+-	cp -a $(TARGET) ../../$(DISTBINDIR)
++	cp -R $(TARGET) ../../$(DISTBINDIR)
+ endif
+diff -Naur xynth-0.8.90.orig/demo/object/Makefile xynth-0.8.90/demo/object/Makefile
+--- xynth-0.8.90.orig/demo/object/Makefile	2007-09-25 10:38:01.000000000 +0200
++++ xynth-0.8.90/demo/object/Makefile	2009-12-28 05:24:53.000000000 +0100
+@@ -23,5 +23,5 @@
+ 
+ dist: all
+ ifneq ($(TARGET),)
+-	cp -a $(TARGET) ../../$(DISTBINDIR)
++	cp -R $(TARGET) ../../$(DISTBINDIR)
+ endif
+diff -Naur xynth-0.8.90.orig/demo/onscreenkeyboard/Makefile xynth-0.8.90/demo/onscreenkeyboard/Makefile
+--- xynth-0.8.90.orig/demo/onscreenkeyboard/Makefile	2007-09-25 10:38:07.000000000 +0200
++++ xynth-0.8.90/demo/onscreenkeyboard/Makefile	2009-12-28 05:24:53.000000000 +0100
+@@ -23,5 +23,5 @@
+ 
+ dist: all
+ ifneq ($(TARGET),)
+-	cp -a $(TARGET) ../../$(DISTBINDIR)
++	cp -R $(TARGET) ../../$(DISTBINDIR)
+ endif
+diff -Naur xynth-0.8.90.orig/demo/simple/Makefile xynth-0.8.90/demo/simple/Makefile
+--- xynth-0.8.90.orig/demo/simple/Makefile	2007-09-25 10:38:07.000000000 +0200
++++ xynth-0.8.90/demo/simple/Makefile	2009-12-28 05:24:53.000000000 +0100
+@@ -23,5 +23,5 @@
+ 
+ dist: all
+ ifneq ($(TARGET),)
+-	cp -a $(TARGET) ../../$(DISTBINDIR)
++	cp -R $(TARGET) ../../$(DISTBINDIR)
+ endif
+diff -Naur xynth-0.8.90.orig/demo/temp/Makefile xynth-0.8.90/demo/temp/Makefile
+--- xynth-0.8.90.orig/demo/temp/Makefile	2007-09-25 10:38:01.000000000 +0200
++++ xynth-0.8.90/demo/temp/Makefile	2009-12-28 05:24:53.000000000 +0100
+@@ -23,5 +23,5 @@
+ 
+ dist: all
+ ifneq ($(TARGET),)
+-	cp -a $(TARGET) ../../$(DISTBINDIR)
++	cp -R $(TARGET) ../../$(DISTBINDIR)
+ endif
+diff -Naur xynth-0.8.90.orig/demo/term/Makefile xynth-0.8.90/demo/term/Makefile
+--- xynth-0.8.90.orig/demo/term/Makefile	2007-09-25 10:38:01.000000000 +0200
++++ xynth-0.8.90/demo/term/Makefile	2009-12-28 05:24:53.000000000 +0100
+@@ -23,5 +23,5 @@
+ 
+ dist: all
+ ifneq ($(TARGET),)
+-	cp -a $(TARGET) ../../$(DISTBINDIR)
++	cp -R $(TARGET) ../../$(DISTBINDIR)
+ endif
+diff -Naur xynth-0.8.90.orig/demo/timer/Makefile xynth-0.8.90/demo/timer/Makefile
+--- xynth-0.8.90.orig/demo/timer/Makefile	2007-09-25 10:38:00.000000000 +0200
++++ xynth-0.8.90/demo/timer/Makefile	2009-12-28 05:24:53.000000000 +0100
+@@ -23,5 +23,5 @@
+ 
+ dist: all
+ ifneq ($(TARGET),)
+-	cp -a $(TARGET) ../../$(DISTBINDIR)
++	cp -R $(TARGET) ../../$(DISTBINDIR)
+ endif
+diff -Naur xynth-0.8.90.orig/demo/widgetx/Makefile xynth-0.8.90/demo/widgetx/Makefile
+--- xynth-0.8.90.orig/demo/widgetx/Makefile	2007-09-25 10:38:07.000000000 +0200
++++ xynth-0.8.90/demo/widgetx/Makefile	2009-12-28 05:24:53.000000000 +0100
+@@ -39,7 +39,7 @@
+ 
+ dist: all
+ ifneq ($(TARGET),)
+-	cp -a $(TARGET) ../../$(DISTBINDIR)
++	cp -R $(TARGET) ../../$(DISTBINDIR)
+ endif
+ 
+ EXTRA_CLEAN = widgetx single_widgetx.a widgetx_xml.c widgetx_xml.h widgetx.o widgetx_xml.o
+diff -Naur xynth-0.8.90.orig/demo/xynthlogout/Makefile xynth-0.8.90/demo/xynthlogout/Makefile
+--- xynth-0.8.90.orig/demo/xynthlogout/Makefile	2007-09-25 10:38:00.000000000 +0200
++++ xynth-0.8.90/demo/xynthlogout/Makefile	2009-12-28 05:24:53.000000000 +0100
+@@ -23,5 +23,5 @@
+ 
+ dist: all
+ ifneq ($(TARGET),)
+-	cp -a $(TARGET) ../../$(DISTBINDIR)
++	cp -R $(TARGET) ../../$(DISTBINDIR)
+ endif
+diff -Naur xynth-0.8.90.orig/src/configs/Makefile xynth-0.8.90/src/configs/Makefile
+--- xynth-0.8.90.orig/src/configs/Makefile	2007-09-25 10:38:47.000000000 +0200
++++ xynth-0.8.90/src/configs/Makefile	2009-12-28 05:24:53.000000000 +0100
+@@ -9,4 +9,4 @@
+ 	@true
+ 
+ dist:
+-	cp -a *.conf ../../$(DISTCONFDIR)
+\ No newline at end of file
++	cp -R *.conf ../../$(DISTCONFDIR)
+\ No newline at end of file
+diff -Naur xynth-0.8.90.orig/src/fonts/Makefile xynth-0.8.90/src/fonts/Makefile
+--- xynth-0.8.90.orig/src/fonts/Makefile	2007-09-25 10:38:49.000000000 +0200
++++ xynth-0.8.90/src/fonts/Makefile	2009-12-28 05:24:53.000000000 +0100
+@@ -9,4 +9,4 @@
+ 	@true
+ 
+ dist:
+-	cp -a *.ttf ../../$(DISTFONTDIR)
+\ No newline at end of file
++	cp -R *.ttf ../../$(DISTFONTDIR)
+\ No newline at end of file
+diff -Naur xynth-0.8.90.orig/src/lib/Makefile xynth-0.8.90/src/lib/Makefile
+--- xynth-0.8.90.orig/src/lib/Makefile	2007-09-25 10:38:40.000000000 +0200
++++ xynth-0.8.90/src/lib/Makefile	2009-12-28 05:24:53.000000000 +0100
+@@ -68,5 +68,5 @@
+ 	@$(foreach F, $(3RDPARTY-Y) $(3RDPARTY-N) $(3RDPARTY-), $(MAKE) -C $F clean || exit 1;)
+ 
+ dist: all
+-	cp -a xynth.h ../../$(DISTINCDIR)
+-	cp -a $(TARGET_A) $(TARGET_SO) $(TARGET) ../../$(DISTLIBDIR)
++	cp -R xynth.h ../../$(DISTINCDIR)
++	cp -R $(TARGET_A) $(TARGET_SO) $(TARGET) ../../$(DISTLIBDIR)
+diff -Naur xynth-0.8.90.orig/src/server/Makefile xynth-0.8.90/src/server/Makefile
+--- xynth-0.8.90.orig/src/server/Makefile	2007-09-25 10:38:47.000000000 +0200
++++ xynth-0.8.90/src/server/Makefile	2009-12-28 05:24:53.000000000 +0100
+@@ -80,10 +80,10 @@
+ include ../../Makefile.rules
+ 
+ dist: all
+-	cp -a $(TARGET) ../../$(DISTBINDIR)
++	cp -R $(TARGET) ../../$(DISTBINDIR)
+ ifeq ($(PLATFORM_MINGW), Y)
+ ifeq ($(THREAD_PTHREADS), Y)
+-	cp -a video/gdi/pthread_w32/pthreadGC2.dll ../../$(DISTBINDIR)
++	cp -R video/gdi/pthread_w32/pthreadGC2.dll ../../$(DISTBINDIR)
+ endif
+ else
+ ifeq ($(PLATFORM_PSPDEV), Y)
+diff -Naur xynth-0.8.90.orig/src/themes/keramik/Makefile xynth-0.8.90/src/themes/keramik/Makefile
+--- xynth-0.8.90.orig/src/themes/keramik/Makefile	2007-09-25 10:38:09.000000000 +0200
++++ xynth-0.8.90/src/themes/keramik/Makefile	2009-12-28 05:24:53.000000000 +0100
+@@ -11,4 +11,4 @@
+ include ../../../Makefile.rules
+ 
+ dist: all
+-	cp -a $(TARGET_SO) ../../../$(DISTTHEMEDIR)
++	cp -R $(TARGET_SO) ../../../$(DISTTHEMEDIR)
+diff -Naur xynth-0.8.90.orig/src/themes/microgui/Makefile xynth-0.8.90/src/themes/microgui/Makefile
+--- xynth-0.8.90.orig/src/themes/microgui/Makefile	2007-09-25 10:38:11.000000000 +0200
++++ xynth-0.8.90/src/themes/microgui/Makefile	2009-12-28 05:24:53.000000000 +0100
+@@ -11,4 +11,4 @@
+ include ../../../Makefile.rules
+ 
+ dist: all
+-	cp -a $(TARGET_SO) ../../../$(DISTTHEMEDIR)
++	cp -R $(TARGET_SO) ../../../$(DISTTHEMEDIR)
+diff -Naur xynth-0.8.90.orig/src/themes/silverado/Makefile xynth-0.8.90/src/themes/silverado/Makefile
+--- xynth-0.8.90.orig/src/themes/silverado/Makefile	2007-09-25 10:38:10.000000000 +0200
++++ xynth-0.8.90/src/themes/silverado/Makefile	2009-12-28 05:24:53.000000000 +0100
+@@ -11,4 +11,4 @@
+ include ../../../Makefile.rules
+ 
+ dist: all
+-	cp -a $(TARGET_SO) ../../../$(DISTTHEMEDIR)
++	cp -R $(TARGET_SO) ../../../$(DISTTHEMEDIR)
+diff -Naur xynth-0.8.90.orig/src/widget/Makefile xynth-0.8.90/src/widget/Makefile
+--- xynth-0.8.90.orig/src/widget/Makefile	2007-09-25 10:38:08.000000000 +0200
++++ xynth-0.8.90/src/widget/Makefile	2009-12-28 05:24:53.000000000 +0100
+@@ -39,4 +39,4 @@
+ 	cp widgetc/widgetc ../../$(DISTBINDIR)
+ 	cp widgetr/widgetr ../../$(DISTBINDIR)
+ 	cp widget.h ../../$(DISTINCDIR)
+-	cp -a $(TARGET_A) $(TARGET_SO) $(TARGET) ../../$(DISTLIBDIR)
++	cp -R $(TARGET_A) $(TARGET_SO) $(TARGET) ../../$(DISTLIBDIR)
+diff -Naur xynth-0.8.90.orig/src/widget/widgetc/Makefile xynth-0.8.90/src/widget/widgetc/Makefile
+--- xynth-0.8.90.orig/src/widget/widgetc/Makefile	2007-09-25 10:38:07.000000000 +0200
++++ xynth-0.8.90/src/widget/widgetc/Makefile	2009-12-28 05:24:53.000000000 +0100
+@@ -17,5 +17,5 @@
+ 
+ dist: all
+ ifneq ($(TARGET),)
+-	cp -a $(TARGET) ../../../$(DISTBINDIR)
++	cp -R $(TARGET) ../../../$(DISTBINDIR)
+ endif
+diff -Naur xynth-0.8.90.orig/src/widget/widgetr/Makefile xynth-0.8.90/src/widget/widgetr/Makefile
+--- xynth-0.8.90.orig/src/widget/widgetr/Makefile	2007-09-25 10:38:08.000000000 +0200
++++ xynth-0.8.90/src/widget/widgetr/Makefile	2009-12-28 05:24:53.000000000 +0100
+@@ -32,5 +32,5 @@
+ 
+ dist: all
+ ifneq ($(TARGET),)
+-	cp -a $(TARGET) ../../../$(DISTBINDIR)
++	cp -R $(TARGET) ../../../$(DISTBINDIR)
+ endif

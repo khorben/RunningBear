@@ -1,0 +1,15 @@
+--- openssl-0.9.8i.orig/crypto/engine/eng_padlock.c	2008-11-02 01:18:40.000000000 +0100
++++ openssl-0.9.8i/crypto/engine/eng_padlock.c	2008-11-02 01:19:41.000000000 +0100
+@@ -126,11 +126,9 @@
+ #ifdef _MSC_VER
+ # include <malloc.h>
+ # define alloca _alloca
+-#elif defined(NETWARE_CLIB) && defined(__GNUC__)
++#else
+   void *alloca(size_t);
+ # define alloca(s) __builtin_alloca(s)
+-#else
+-# include <stdlib.h>
+ #endif
+ 
+ /* Function for ENGINE detection and control */
