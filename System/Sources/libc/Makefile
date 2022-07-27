@@ -1,5 +1,5 @@
 PACKAGE	= libc
-VERSION	= 0.1.2
+VERSION	= 0.5.2
 DESTDIR	=
 PREFIX	= /usr/local
 TARGETS	= $(PACKAGE)-$(VERSION)/.build-done
@@ -10,7 +10,7 @@ RM	= rm -f
 TAR	= tar
 TOUCH	= touch
 ARCHIVE	= $(PACKAGE)-$(VERSION).tar.gz
-MIRROR	= http://www.defora.org/os/download/download/4352
+MIRROR	= https://ftp.defora.org/pub/DeforaOS/System/src/libc/
 URL	= $(MIRROR)/$(ARCHIVE)
 
 all: $(TARGETS)
